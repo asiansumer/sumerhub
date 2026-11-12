@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
     config.resolve.alias['taglib-wasm$'] = require.resolve('taglib-wasm').replace(/index\.js$/, 'index.browser.js');
     // TagLib's Emscripten loader has an unreachable Node branch in browsers.
     config.resolve.fallback = { ...config.resolve.fallback, module: false };
+    // Transformers.js（抠图）在浏览器里用不到这两个只给 Node 用的包。
+    config.resolve.alias['sharp$'] = false;
+    config.resolve.alias['onnxruntime-node$'] = false;
     // ebur128-wasm（音频分析的响度测量）是以 ES 模块形式引入的 .wasm。
     config.experiments = { ...config.experiments, asyncWebAssembly: true };
     config.output.environment = { ...config.output.environment, asyncFunction: true };

@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "assets": "node scripts/fetch-assets.mjs",
+    "dev": "node scripts/fetch-assets.mjs && next dev",
+    "build": "node scripts/fetch-assets.mjs && next build",
     "start": "next start",
     "lint": "eslint src",
     "test": "node --conditions=browser --experimental-wasm-modules --test tests/*.test.ts"
@@ -16,6 +17,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@fontsource-variable/source-serif-4": "^5.3.1",
     "@fontsource/noto-serif-sc": "^5.3.1",
+    "@huggingface/transformers": "^4.3.2",
     "@jsquash/jpeg": "^1.6.0",
     "@jsquash/webp": "^1.5.0",
     "@mediabunny/aac-encoder": "^1.65.2",

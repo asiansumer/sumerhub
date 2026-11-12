@@ -44,6 +44,15 @@ export const tools: Tool[] = [
     keywords: ['image', 'compress', 'jpg', 'jpeg', 'png', 'webp', 'heic', 'squoosh', '压缩', '图片', '转换', '缩小'],
   },
   {
+    slug: 'remove-bg',
+    name: '抠图',
+    tagline: '去掉照片的背景，导出透明 PNG，也可以换成纯色背景。',
+    category: '图片',
+    added: '2026.11',
+    source: { name: 'ZhengPeng7/BiRefNet', url: 'https://github.com/ZhengPeng7/BiRefNet' },
+    keywords: ['remove', 'background', 'bg', 'cutout', 'matting', 'transparent', 'png', '抠图', '去背景', '透明', '证件照', '换背景', '白底', '封面', '图片'],
+  },
+  {
     slug: 'audio-analyze',
     name: '音频分析',
     tagline: '看一首歌或伴奏的 BPM、调性、音阶和响度。',
