@@ -6,13 +6,19 @@
 # The CQT kernels come from nnAudio's CQT1992v2 (MIT), which reproduces librosa.cqt, the transform used in training.
 # Kernels are cropped to their non-zero span in groups of 12 bins so the file stays small; the output is unchanged.
 #
+# The network listens to the track five times, transposed by -2..+2 semitones, and the five answers are transposed
+# back and averaged. A transposed view is just the same CQT read four bins (two semitones) wider on each side and
+# cropped at a different bin, so it costs no extra audio processing. The model was trained with pitch shifts in this
+# range. Averaging makes the answer steadier: without it, a track the model is unsure about can flip between two
+# keys when the audio starts a few milliseconds later, which is what different MP3 decoders do.
+#
 # Usage:
 #   pip install torch nnAudio onnx
 #   git clone https://github.com/a1ex90/MusicalKeyCNN
 #   python scripts/keynet/export_onnx.py MusicalKeyCNN/checkpoints/keynet.pt public/models/keynet/keynet.onnx
 #
-# Checked on 380 annotated tracks (GiantSteps key + GTZAN key): 378 give the same key as the reference
-# PyTorch + librosa pipeline, with the same accuracy.
+# Checked on 380 annotated tracks (GiantSteps key + GTZAN key): 67% exact key, 72% right scale (66% and 71% with a
+# single view).
 import os
 import sys
 
@@ -22,6 +28,11 @@ import torch.nn.functional as F
 from nnAudio.features.cqt import CQT1992v2
 
 SR, HOP, BINS, BPO, FMIN, GROUP = 44100, 8820, 105, 24, 65, 12
+# Views are transposed by -SHIFTS..+SHIFTS semitones; one semitone is two CQT bins.
+SHIFTS = 2
+PAD = SHIFTS * BPO // 12
+# Output classes in Camelot order, as (tonic pitch class, is major).
+CLASSES = [(t, False) for t in (8, 3, 10, 5, 0, 7, 2, 9, 4, 11, 6, 1)] + [(t, True) for t in (11, 6, 1, 8, 3, 10, 5, 0, 7, 2, 9, 4)]
 
 
 class BasicConv2d(nn.Module):
@@ -60,12 +71,13 @@ class KeyNet(nn.Module):
 class KeyFromAudio(nn.Module):
     def __init__(self, checkpoint):
         super().__init__()
-        cqt = CQT1992v2(sr=SR, hop_length=HOP, fmin=FMIN, n_bins=BINS, bins_per_octave=BPO, pad_mode='constant', verbose=False)
+        cqt = CQT1992v2(sr=SR, hop_length=HOP, fmin=FMIN * 2 ** (-PAD / BPO), n_bins=BINS + 2 * PAD, bins_per_octave=BPO,
+                        pad_mode='constant', verbose=False)
         scale = torch.sqrt(cqt.lenghts.view(-1, 1, 1))
         real, imag = cqt.cqt_kernels_real * scale, cqt.cqt_kernels_imag * scale
         centre = real.shape[-1] // 2
         self.halves = []
-        for g, start in enumerate(range(0, BINS, GROUP)):
+        for g, start in enumerate(range(0, BINS + 2 * PAD, GROUP)):
             r, i = real[start:start + GROUP], imag[start:start + GROUP]
             used = ((r.abs() + i.abs()).sum(dim=(0, 1)) > 0).nonzero().flatten()
             half = int(max(centre - used.min(), used.max() + 1 - centre))
@@ -73,6 +85,11 @@ class KeyFromAudio(nn.Module):
             self.register_buffer(f'kernels{g}', torch.cat([r, i])[:, :, centre - half:centre + half].contiguous())
         self.net = KeyNet()
         self.net.load_state_dict(torch.load(checkpoint, map_location='cpu', weights_only=True))
+        # A view cropped at bin 2 * v shows the music (v - SHIFTS) semitones lower, so its answer for key K is really
+        # about the key (v - SHIFTS) semitones above K. `back` moves each view's probabilities to the right classes.
+        index = {key: i for i, key in enumerate(CLASSES)}
+        self.register_buffer('back', torch.tensor([[index[((tonic - (v - SHIFTS)) % 12, major)] for tonic, major in CLASSES]
+                                                   for v in range(2 * SHIFTS + 1)]))
 
     def spectrogram(self, audio):
         x = audio[:, None, :]
@@ -85,7 +102,10 @@ class KeyFromAudio(nn.Module):
         return torch.log1p(torch.cat(parts, dim=1))[:, :, :-2]
 
     def forward(self, audio):
-        return torch.softmax(self.net(self.spectrogram(audio)[:, None]), dim=1)[0]
+        spec = self.spectrogram(audio)[0]
+        views = torch.stack([spec[2 * v:2 * v + BINS] for v in range(2 * SHIFTS + 1)])
+        probs = torch.softmax(self.net(views[:, None]), dim=1)
+        return torch.gather(probs, 1, self.back).mean(dim=0)
 
 
 if __name__ == '__main__':
