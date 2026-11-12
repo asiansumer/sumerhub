@@ -93,6 +93,8 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .stats dd em { margin-left: 6px; font: 11px var(--mono); font-style: normal; letter-spacing: 0; color: var(--faint); }
 .accidental { font-family: var(--sans); font-size: .78em; margin: 0 .04em 0 -.02em; vertical-align: .08em; }
 .stats small { display: block; min-height: 1.5em; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.analysis-scale { display: flex; flex-wrap: wrap; gap: 4px 22px; margin: 12px 12px 0; font-size: 13px; color: var(--fg); }
+.analysis-scale i { margin-right: 8px; font: 11px var(--mono); font-style: normal; letter-spacing: .04em; color: var(--faint); }
 .analysis-meta { margin: 10px 12px 0; font: 12px var(--mono); color: var(--faint); }
 
 /* 音频分析的预览图 */

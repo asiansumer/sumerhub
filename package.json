@@ -20,6 +20,7 @@
     "heic2any": "^0.0.4",
     "jszip": "^3.10.1",
     "next": "15.5.27",
+    "onnxruntime-web": "^1.31.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.8",

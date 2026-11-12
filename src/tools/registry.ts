@@ -46,11 +46,11 @@ export const tools: Tool[] = [
   {
     slug: 'audio-analyze',
     name: '音频分析',
-    tagline: '看一首歌的 BPM、调性、Camelot 编号和响度。',
+    tagline: '看一首歌或伴奏的 BPM、调性、音阶和响度。',
     category: '音频',
     added: '2026.11',
     source: { name: 'Tunebat', url: 'https://tunebat.com/Analyzer', inspired: true },
-    keywords: ['bpm', 'key', 'tempo', 'camelot', 'lufs', 'tunebat', 'dj', '速度', '节拍', '调性', '响度', '音乐', '分析'],
+    keywords: ['bpm', 'key', 'tempo', 'camelot', 'lufs', 'tunebat', 'dj', 'autotune', '速度', '节拍', '调性', '音阶', '伴奏', '修音', '响度', '音乐', '分析'],
   },
 ];
 

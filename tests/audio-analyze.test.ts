@@ -1,13 +1,19 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import * as ort from 'onnxruntime-web';
 import { analyze, waveformPeaks } from '../src/tools/audio-analyze/lib/analyze.ts';
-import { decimate } from '../src/tools/audio-analyze/lib/fft.ts';
-import { describeKey, estimateKey } from '../src/tools/audio-analyze/lib/key.ts';
+import { describeKey, estimateKey, keysFromProbabilities, type KeyModel } from '../src/tools/audio-analyze/lib/key.ts';
 import { measureLoudness } from '../src/tools/audio-analyze/lib/loudness.ts';
 import { estimateTempo } from '../src/tools/audio-analyze/lib/tempo.ts';
 
 // 所有素材都是现场合成的，答案是已知的。
 const RATE = 44100;
+
+// 网页里用的同一个模型文件，这里用 ONNX Runtime 的 Node 版本来跑。
+ort.env.wasm.numThreads = 1;
+const session = ort.InferenceSession.create(readFileSync(new URL('../public/models/keynet/keynet.onnx', import.meta.url)), { executionProviders: ['wasm'] });
+const keyModel: KeyModel = async audio => (await (await session).run({ audio: new ort.Tensor('float32', audio, [1, audio.length]) })).probs.data as Float32Array;
 let seed = 1;
 const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 2 ** 32 - 0.5; };
 
@@ -61,7 +67,7 @@ test('audio without a beat, or too short, gives no tempo', async () => {
   assert.equal(await estimateTempo(drums(120, 3), RATE), null);
 });
 
-test('key of simple chord progressions', () => {
+test('key of simple chord progressions', async () => {
   const cases: [string, number[][]][] = [
     ['C 大调', [triad(60), triad(65), triad(67), triad(60)]],
     ['G 大调', [triad(67), triad(60), triad(62), triad(67)]],
@@ -70,16 +76,48 @@ test('key of simple chord progressions', () => {
     ['E♭ 大调', [triad(63), triad(60, true), triad(56), triad(58)]],
   ];
   for (const [expected, progression] of cases) {
-    const { samples, sampleRate } = decimate(chords(progression, 24), RATE);
-    assert.equal(estimateKey(samples, sampleRate)?.name, expected);
+    assert.equal((await estimateKey(keyModel, chords(progression, 24), RATE))?.name, expected);
   }
 });
 
-test('key detection follows the tuning of the recording', () => {
-  // 整体高 30 音分（A ≈ 447.7 Hz）也应当认成 A 小调。
-  const sharp = chords([triad(57.3, true), triad(62.3, true), triad(64.3, true), triad(57.3, true)], 24);
-  const { samples, sampleRate } = decimate(sharp, RATE);
-  assert.equal(estimateKey(samples, sampleRate)?.name, 'A 小调');
+test('silence, very short audio and other sample rates give no key', async () => {
+  assert.equal(await estimateKey(keyModel, new Float32Array(RATE * 10), RATE), null);
+  assert.equal(await estimateKey(keyModel, chords([triad(60)], 2), RATE), null);
+  assert.equal(await estimateKey(keyModel, chords([triad(60)], 10), 48000), null);
+});
+
+test('model output becomes a key plus candidates on other scales', () => {
+  // 类别按 Camelot 排列：0–11 是 1A–12A，12–23 是 1B–12B。
+  const probabilities = new Array(24).fill(0.005);
+  probabilities[3] = 0.5;   // 4A，F 小调
+  probabilities[15] = 0.2;  // 4B，A♭ 大调：F 小调的关系大调，音阶相同
+  probabilities[4] = 0.15;  // 5A，C 小调
+  probabilities[14] = 0.09; // 3B，D♭ 大调
+  probabilities[2] = 0.03;  // 概率太低，不列出来
+  const key = keysFromProbabilities(probabilities);
+  assert.equal(key?.name, 'F 小调');
+  assert.equal(key?.confidence, 0.5);
+  assert.deepEqual(key?.alternatives.map(item => item.name), ['C 小调', 'D♭ 大调']);
+  assert.equal(keysFromProbabilities(new Array(24).fill(0)), null);
+  assert.equal(keysFromProbabilities([1, 0]), null);
+});
+
+test('scale notes and relative keys for auto-tune', () => {
+  assert.deepEqual(describeKey(5, 'minor').notes, ['F', 'G', 'A♭', 'B♭', 'C', 'D♭', 'E♭']);
+  assert.equal(describeKey(5, 'minor').relative, 'A♭ 大调');
+  assert.deepEqual(describeKey(9, 'major').notes, ['A', 'B', 'C♯', 'D', 'E', 'F♯', 'G♯']);
+  assert.equal(describeKey(9, 'major').relative, 'F♯ 小调');
+  assert.deepEqual(describeKey(2, 'minor').notes, ['D', 'E', 'F', 'G', 'A', 'B♭', 'C']);
+  assert.deepEqual(describeKey(0, 'major').notes, ['C', 'D', 'E', 'F', 'G', 'A', 'B']);
+  // 关系大小调是同一组音。
+  for (let tonic = 0; tonic < 12; tonic++) {
+    const minor = describeKey(tonic, 'minor'), major = describeKey((tonic + 3) % 12, 'major');
+    // 只有 E♭ 小调 / F♯ 大调这一对写法不同：关系调分别写成 G♭ 大调和 D♯ 小调。
+    assert.equal(minor.relative, tonic === 3 ? 'G♭ 大调' : major.name);
+    assert.equal(major.relative, tonic === 3 ? 'D♯ 小调' : minor.name);
+    assert.deepEqual([...minor.notes].sort(), tonic === 3 ? ['A♭', 'B', 'B♭', 'D♭', 'E♭', 'F', 'G♭'] : [...major.notes].sort());
+    assert.equal(minor.camelot.slice(0, -1), major.camelot.slice(0, -1));
+  }
 });
 
 test('Camelot numbers and compatible keys', () => {
@@ -107,7 +145,7 @@ test('loudness matches the EBU R128 reference: a 1 kHz stereo sine at −23 dBFS
 test('full analysis of a drum loop over chords', async () => {
   const beat = drums(128, 30), harmony = chords([triad(57, true), triad(65), triad(60), triad(55)], 30);
   const mix = Float32Array.from(beat, (value, i) => 0.6 * value + harmony[i]);
-  const result = await analyze([mix, mix], RATE);
+  const result = await analyze([mix, mix], RATE, keyModel);
   assert.equal(result.tempo?.bpm, 128);
   assert.equal(result.key?.camelot.slice(0, -1), '8');
   assert.ok(Math.abs(result.duration - 30) < 0.01);
@@ -115,4 +153,11 @@ test('full analysis of a drum loop over chords', async () => {
   assert.equal(result.waveform.length, 180);
   assert.ok(result.waveform.every(value => value >= 0 && value <= 1) && Math.max(...result.waveform) === 1);
   assert.deepEqual(waveformPeaks([new Float32Array(1000)], 10), new Array(10).fill(0));
+});
+
+test('analysis still returns the rest when the key model cannot load', async () => {
+  const result = await analyze([drums(128, 20)], RATE, async () => { throw new Error('offline'); });
+  assert.equal(result.key, null);
+  assert.equal(result.keyUnavailable, true);
+  assert.equal(result.tempo?.bpm, 128);
 });

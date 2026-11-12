@@ -26,8 +26,8 @@ self.onmessage = async ({ data }: MessageEvent<AnalyzeRequest>) => {
     if (data.kind === 'info') response = { id: data.id, kind: 'info', info: await readInfo(data.file) };
     else {
       // 分析用到的 .wasm 模块要异步加载。放在这里按需引入，线程一启动就能接收消息，不会漏掉第一条。
-      const { analyze } = await import('./lib/analyze');
-      response = { id: data.id, kind: 'analyze', analysis: await analyze(data.channels, data.sampleRate) };
+      const [{ analyze }, { keyModel }] = await Promise.all([import('./lib/analyze'), import('./lib/key-model')]);
+      response = { id: data.id, kind: 'analyze', analysis: await analyze(data.channels, data.sampleRate, keyModel) };
     }
   } catch (error) {
     response = { id: data.id, kind: 'error', error: error instanceof Error ? error.message : '分析失败，请重试' };

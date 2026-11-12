@@ -25,6 +25,9 @@ const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.fl
 const signed = (value: number) => (value < 0 ? '−' : value > 0 ? '+' : '') + Math.abs(value).toFixed(1);
 const codecName = (info: FileInfo, name: string) => info.codec && info.codec !== 'Unknown' ? info.codec.toUpperCase() : (name.match(/\.([a-z0-9]+)$/i)?.[1] ?? '').toUpperCase();
 
+/** 模型给的概率低于这个数时，实测只有一半左右是对的。 */
+const UNSURE = 0.5;
+
 /** 升降号在衬线字体里会回退成很宽的字形，单独换成无衬线。 */
 const note = (text: string) => text.split(/([♭♯])/).map((part, index) => index % 2 ? <span key={index} className="accidental">{part}</span> : part);
 
@@ -159,9 +162,9 @@ export default function AudioAnalyze() {
   const working = items.filter(item => item.status === 'working').length;
 
   async function copy() {
-    const rows = done.map(({ name, info, analysis }) => [info?.title || name, info?.artist ?? '', analysis!.tempo?.bpm ?? '', analysis!.key?.name ?? '', analysis!.key?.camelot ?? '', analysis!.lufs ?? '', clock(analysis!.duration)].join('\t'));
+    const rows = done.map(({ name, info, analysis }) => [info?.title || name, info?.artist ?? '', analysis!.tempo?.bpm ?? '', analysis!.key?.name ?? '', analysis!.key?.camelot ?? '', analysis!.key?.notes.join(' ') ?? '', analysis!.lufs ?? '', clock(analysis!.duration)].join('\t'));
     try {
-      await navigator.clipboard.writeText(['歌名\t歌手\tBPM\t调性\tCamelot\t响度 (LUFS)\t时长', ...rows].join('\n'));
+      await navigator.clipboard.writeText(['歌名\t歌手\tBPM\t调性\tCamelot\t音阶\t响度 (LUFS)\t时长', ...rows].join('\n'));
       setCopied(true); setTimeout(() => setCopied(false), 1600);
     } catch { setMessage('复制失败，请手动选择文字复制。'); }
   }
@@ -223,7 +226,7 @@ export default function AudioAnalyze() {
                           <div>
                             <dt>调性</dt>
                             <dd>{analysis.key ? note(analysis.key.name) : '—'}</dd>
-                            <small>{analysis.key ? analysis.key.short + (analysis.key.confidence < 0.15 ? ' · 把握不大' : '') : '听不出明确的调'}</small>
+                            <small>{analysis.key ? <>同 {note(analysis.key.relative)}{analysis.key.confidence < UNSURE ? ' · 把握不大' : ''}</> : analysis.keyUnavailable ? '模型没加载成功' : '听不出明确的调'}</small>
                           </div>
                           <div>
                             <dt>Camelot</dt>
@@ -236,6 +239,12 @@ export default function AudioAnalyze() {
                             <small>{analysis.peak === null ? '静音' : `真峰值 ${signed(analysis.peak)} dBTP`}</small>
                           </div>
                         </dl>
+                        {analysis.key && (
+                          <p className="analysis-scale">
+                            <span><i>音阶</i>{note(analysis.key.notes.join(' '))}</span>
+                            {analysis.key.alternatives.length > 0 && <span><i>也可能是</i>{note(analysis.key.alternatives.map(key => key.name).join('、'))}</span>}
+                          </p>
+                        )}
                         <p className="analysis-meta">{details(item)}</p>
                       </>
                     )}
@@ -250,9 +259,10 @@ export default function AudioAnalyze() {
       <dl className="notes">
         <div><dt>隐私</dt><dd>音频只在浏览器里分析，不会上传。关掉页面后结果会清除。</dd></div>
         <div><dt>BPM</dt><dd>结果取 90–180 之间的整数。慢歌可能显示成两倍，另一个可能的数写在下面。</dd></div>
-        <div><dt>调性</dt><dd>按整首歌的和声估算，转调多的歌可能不准。Camelot 编号相邻的歌混在一起更顺。</dd></div>
+        <div><dt>调性</dt><dd>修音（Auto-Tune）时选这个调，选它的关系调也一样，两者是同一组音。标了「把握不大」的，把「也可能是」里的调也试一下。</dd></div>
       </dl>
       <p className="fine">
+        调性识别使用 <a href="https://github.com/a1ex90/MusicalKeyCNN" target="_blank" rel="noopener noreferrer">MusicalKeyCNN</a> 的模型，
         BPM 检测使用 <a href="https://github.com/dlepaux/realtime-bpm-analyzer" target="_blank" rel="noopener noreferrer">realtime-bpm-analyzer</a>，
         响度按 EBU R128 测量，使用 <a href="https://github.com/streamonkey/ebur128_wasm" target="_blank" rel="noopener noreferrer">ebur128-wasm</a>，
         标签读取使用 <a href="/licenses/taglib-LGPL-2.1.txt" target="_blank">TagLib</a>。
