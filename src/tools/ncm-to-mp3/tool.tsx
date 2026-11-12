@@ -5,7 +5,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDropzone, type FileRejection } from 'react-dropzone';
-import { PiArrowDown, PiDownloadSimple, PiMusicNotes, PiPauseFill, PiPlayFill, PiUploadSimple, PiX, PiLockSimple, PiFileAudio, PiStack } from 'react-icons/pi';
+import { PiArrowDown, PiPauseFill, PiPlayFill } from 'react-icons/pi';
 import { convertFile, uniqueName, MAX_FILE_SIZE, type ConvertedFile } from './lib/convert';
 import './ncm.css';
 
@@ -16,7 +16,6 @@ export default function NcmToMp3() {
   const [working, setWorking] = useState(false);
   const [results, setResults] = useState<ConvertedFile[]>([]);
   const [failures, setFailures] = useState<Failure[]>([]);
-  const [selected, setSelected] = useState<string[]>([]);
   const [progress, setProgress] = useState({ done: 0, total: 0, percent: 0 });
   const [audioId, setAudioId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
@@ -26,7 +25,7 @@ export default function NcmToMp3() {
 
   const stopAudio = useCallback(() => { audio.current?.pause(); audio.current = null; setAudioId(null); }, []);
   const clearResults = useCallback(() => {
-    stopAudio(); urls.current.forEach(URL.revokeObjectURL); urls.current = []; owned.current = []; setResults([]); setSelected([]);
+    stopAudio(); urls.current.forEach(URL.revokeObjectURL); urls.current = []; owned.current = []; setResults([]);
   }, [stopAudio]);
 
   useEffect(() => () => { controller.current?.abort(); audio.current?.pause(); urls.current.forEach(URL.revokeObjectURL); }, []);
@@ -58,7 +57,7 @@ export default function NcmToMp3() {
         if (coverUrl) urls.current.push(coverUrl);
         const item = { ...result, coverUrl, id: crypto.randomUUID(), name: uniqueName(files[i].name, used), url };
         completed.push(item); owned.current = [...completed];
-        setResults([...completed]); setSelected(previous => [...previous, item.id]);
+        setResults([...completed]);
       } catch (error) {
         if (abort.signal.aborted) break;
         setFailures(previous => [...previous, { name: files[i].name, error: error instanceof Error ? error.message : '转换失败，请重试' }]);
@@ -88,7 +87,7 @@ export default function NcmToMp3() {
     player.play().then(() => { if (audio.current === player) setAudioId(item.id); }).catch(() => setMessage('无法试听，可下载后播放。'));
   }
   async function downloadZip() {
-    const chosen = results.filter(item => selected.includes(item.id));
+    const chosen = results;
     if (!chosen.length || zipBusy) return;
     setZipBusy(true); setMessage('');
     try {
@@ -103,83 +102,68 @@ export default function NcmToMp3() {
   }
 
   const hasOutput = results.length > 0 || working;
-  const allSelected = results.length > 0 && selected.length === results.length;
 
   return (
     <div className="ncm">
-      <div {...getRootProps({ className: 'dropzone' + (isDragActive ? ' dragging' : '') + (hasOutput ? ' compact' : '') })}>
+      <div {...getRootProps({ className: 'drop' + (isDragActive ? ' dragging' : '') + (hasOutput ? ' compact' : ''), onClick: () => { if (!working && !zipBusy) open(); } })}
+        role="button" tabIndex={0} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); if (!working && !zipBusy) open(); } }}>
         <input {...getInputProps()} aria-label="选择 NCM 文件" />
-        <span className="drop-icon"><PiUploadSimple size={hasOutput ? 18 : 24} /></span>
-        <div className="drop-copy">
-          <strong>{isDragActive ? '松开，开始转换' : hasOutput ? '继续拖入，或再选一批' : '把 .ncm 文件拖到这里'}</strong>
-          <span>支持批量 · 单个不超过 100 MB · 每批最多 100 个</span>
-        </div>
-        <button className="button primary" onClick={open} disabled={working || zipBusy}>{results.length ? '再选一批' : '选择文件'}</button>
+        <span className="drop-title">{isDragActive ? '松开开始转换' : hasOutput ? '再加一批' : <>拖入 .ncm 文件，或<u>点击选择</u></>}</span>
+        {!hasOutput && <span className="drop-hint">可多选，单个不超过 100 MB</span>}
       </div>
 
       {working && (
         <div className="progress" aria-live="polite">
-          <div className="progress-label">
-            <span>正在转换 <b>{Math.min(progress.done + 1, progress.total)}</b> / {progress.total}</span>
-            <button className="text-button" onClick={cancel}><PiX size={14} />取消</button>
-          </div>
           <div className="bar" role="progressbar" aria-label="转换进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress.percent)}>
             <span style={{ width: progress.percent + '%' }} />
+          </div>
+          <div className="progress-label">
+            <span>正在转换 {Math.min(progress.done + 1, progress.total)} / {progress.total}</span>
+            <button className="link" onClick={cancel}>取消</button>
           </div>
         </div>
       )}
 
       {!!failures.length && (
-        <div className="notice error" role="alert">
-          {failures.slice(0, 3).map((item, i) => <p key={i}><b title={item.name}>{item.name}</b>{item.error}</p>)}
+        <div className="errors" role="alert">
+          {failures.slice(0, 3).map((item, i) => <p key={i}><span title={item.name}>{item.name}</span>{item.error}</p>)}
           {failures.length > 3 && <p>另有 {failures.length - 3} 个文件未能处理</p>}
         </div>
       )}
-      {message && <p className="notice" role="status">{message}<button className="text-button" onClick={() => setMessage('')} aria-label="关闭提示"><PiX /></button></p>}
+      {message && <p className="message" role="status">{message}</p>}
 
       {results.length > 0 && (
-        <section className="results" aria-label="转换结果">
+        <section aria-label="转换结果">
           <div className="results-head">
-            <label className="check">
-              <input type="checkbox" checked={allSelected} onChange={() => setSelected(allSelected ? [] : results.map(item => item.id))} />
-              全选<span className="count">{results.length} 首</span>
-            </label>
-            <div className="results-actions">
-              {!working && <button className="text-button" onClick={reset} disabled={zipBusy}>清空</button>}
-              <button className="button" onClick={downloadZip} disabled={!selected.length || zipBusy}>
-                <PiDownloadSimple size={16} />{zipBusy ? '打包中…' : `打包下载${selected.length ? ' · ' + selected.length : ''}`}
-              </button>
+            <span>{results.length} 首</span>
+            <div>
+              {!working && <button className="link" onClick={reset} disabled={zipBusy}>清空</button>}
+              {results.length > 1 && <button className="button" onClick={downloadZip} disabled={zipBusy}>{zipBusy ? '打包中…' : '全部下载'}</button>}
             </div>
           </div>
           <ul className="tracks">
             {results.map(item => (
               <li key={item.id} className={audioId === item.id ? 'track playing' : 'track'}>
-                <input type="checkbox" aria-label={'选择 ' + item.name} checked={selected.includes(item.id)}
-                  onChange={() => setSelected(previous => previous.includes(item.id) ? previous.filter(id => id !== item.id) : [...previous, item.id])} />
-                <span className="cover">{item.coverUrl ? <img src={item.coverUrl} alt="" /> : <PiMusicNotes size={18} />}</span>
+                <span className="cover">{item.coverUrl && <img src={item.coverUrl} alt="" />}</span>
                 <div className="track-text">
                   <strong title={item.name}>{item.title}</strong>
-                  <span>{[item.artist, item.album].filter(Boolean).join(' · ') || 'MP3'}<i> · {size(item.blob.size)}</i></span>
+                  <span>{[item.artist, item.album, size(item.blob.size)].filter(Boolean).join(' · ')}</span>
                 </div>
-                <button className="round" onClick={() => toggleAudio(item)} aria-label={(audioId === item.id ? '暂停 ' : '试听 ') + item.name}>
-                  {audioId === item.id ? <PiPauseFill size={14} /> : <PiPlayFill size={14} />}
+                <button className="icon" onClick={() => toggleAudio(item)} aria-label={(audioId === item.id ? '暂停 ' : '试听 ') + item.name}>
+                  {audioId === item.id ? <PiPauseFill size={15} /> : <PiPlayFill size={15} />}
                 </button>
-                <a className="round accent" href={item.url} download={item.name} aria-label={'下载 ' + item.name}><PiArrowDown size={16} /></a>
+                <a className="icon" href={item.url} download={item.name} aria-label={'下载 ' + item.name}><PiArrowDown size={17} /></a>
               </li>
             ))}
           </ul>
         </section>
       )}
 
-      <dl className="notes">
-        <div><dt><PiLockSimple size={16} />不上传</dt><dd>音频只在浏览器里解码和转换。缺少内嵌封面时，只按文件自带的地址从网易云图片 CDN 补全。</dd></div>
-        <div><dt><PiFileAudio size={16} />音质</dt><dd>内含 MP3 的直接取出原始音频；内含 FLAC 的转成 320 kbps MP3，是有损转换。</dd></div>
-        <div><dt><PiStack size={16} />信息完整</dt><dd>保留封面、歌名、歌手、专辑、音轨号和歌词等标签。关掉页面后结果会清除。</dd></div>
-      </dl>
-      <p className="credits">
-        MP3 编码基于 <a href="/licenses/lamejs-LICENSE.txt" target="_blank">lamejs / LAME（LGPL-3.0）</a>，
-        标签读写基于 <a href="/licenses/taglib-LGPL-2.1.txt" target="_blank">TagLib（LGPL-2.1）</a>。
-        源代码见 <a href="https://github.com/asiansumer/NCM-Swift" target="_blank" rel="noopener noreferrer">NCM-Swift</a>。
+      <p className="fine">
+        音频只在浏览器里处理，不会上传。内含 MP3 的文件直接取出原始音频，内含 FLAC 的转成 320 kbps MP3。关掉页面后结果会清除。
+        <br />
+        使用 <a href="/licenses/lamejs-LICENSE.txt" target="_blank">lamejs</a> 和 <a href="/licenses/taglib-LGPL-2.1.txt" target="_blank">TagLib</a>，
+        源自 <a href="https://github.com/asiansumer/NCM-Swift" target="_blank" rel="noopener noreferrer">NCM-Swift</a>。
       </p>
     </div>
   );

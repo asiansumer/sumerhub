@@ -1,9 +1,8 @@
 'use client';
 
-import { PiMoon, PiSun } from 'react-icons/pi';
-import Logo from './logo';
+import Link from 'next/link';
 
-export default function SiteHeader({ children }: { children?: React.ReactNode }) {
+export default function SiteHeader({ title }: { title?: string }) {
   function toggleTheme() {
     const root = document.documentElement;
     const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
@@ -13,13 +12,11 @@ export default function SiteHeader({ children }: { children?: React.ReactNode })
   }
   return (
     <header className="site-header">
-      <Logo />
-      <div className="header-actions">
-        {children}
-        <button className="icon-button" onClick={toggleTheme} aria-label="切换深浅色">
-          <PiSun className="when-dark" size={18} /><PiMoon className="when-light" size={18} />
-        </button>
-      </div>
+      <nav className="crumbs" aria-label="位置">
+        <Link href="/" className={title ? 'crumb-home' : 'crumb-home current'}>sumerhub</Link>
+        {title && <><span aria-hidden="true">/</span><span className="current">{title}</span></>}
+      </nav>
+      <button className="theme-toggle" onClick={toggleTheme} aria-label="切换深浅色"><span /></button>
     </header>
   );
 }
