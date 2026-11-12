@@ -178,8 +178,7 @@ export default function NcmToMp3() {
         <div><dt>标签</dt><dd>保留封面、歌名、歌手、专辑和歌词。缺封面时按文件自带地址补全。</dd></div>
       </dl>
       <p className="fine">
-        使用 <a href="/licenses/lamejs-LICENSE.txt" target="_blank">lamejs</a> 和 <a href="/licenses/taglib-LGPL-2.1.txt" target="_blank">TagLib</a>，
-        源自 <a href="https://github.com/asiansumer/NCM-Swift" target="_blank" rel="noopener noreferrer">NCM-Swift</a>。
+        MP3 编码使用 <a href="/licenses/lamejs-LICENSE.txt" target="_blank">lamejs</a>，标签读写使用 <a href="/licenses/taglib-LGPL-2.1.txt" target="_blank">TagLib</a>。
       </p>
     </div>
   );

@@ -1,12 +1,6 @@
-import './preview.css';
+import ConvertPreview from '@/components/convert-preview';
 
-/** 首页卡片和拖放区共用的小图：一个 .ncm 文件变成 .mp3。纯 HTML/CSS，没有图片。 */
+/** 首页卡片和拖放区共用的小图：一个 .ncm 文件变成带波形的 .mp3。 */
 export default function NcmPreview() {
-  return (
-    <div className="ncm-preview" aria-hidden="true">
-      <span className="file"><i className="lock" /><b>.ncm</b></span>
-      <span className="flow"><i /><i /><i /></span>
-      <span className="file out"><i className="wave"><u /><u /><u /><u /><u /></i><b>.mp3</b></span>
-    </div>
-  );
+  return <ConvertPreview from=".ncm" to=".mp3" before={<i className="lock" />}><i className="wave"><u /><u /><u /><u /><u /></i></ConvertPreview>;
 }

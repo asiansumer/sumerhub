@@ -12,12 +12,14 @@
 export type Tool = {
   slug: string;
   name: string;
-  /** 一句话，出现在首页列表和工具页标题下。 */
+  /** 一句话，出现在首页卡片和工具页标题下。 */
   tagline: string;
-  /** 首页列表右侧的小字分类，例如「音频」。 */
+  /** 分类，例如「音频」。工具多了以后首页按它分组。 */
   category: string;
   /** 加入的年月，例如 2026.11。 */
   added: string;
+  /** 灵感或代码来自哪个项目，会显示在工具页底部。 */
+  source?: { name: string; url: string };
   /** 给搜索用的额外关键词。 */
   keywords?: string[];
 };
@@ -29,6 +31,7 @@ export const tools: Tool[] = [
     tagline: '把网易云的 .ncm 转成 MP3，保留封面和标签。',
     category: '音频',
     added: '2026.11',
+    source: { name: 'asiansumer/NCM-Swift', url: 'https://github.com/asiansumer/NCM-Swift' },
     keywords: ['ncm', 'mp3', '网易云', 'netease', 'flac', '音乐', '转换'],
   },
 ];

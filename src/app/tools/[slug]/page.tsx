@@ -21,7 +21,7 @@ export default async function ToolPage({ params }: Props) {
   const tool = getTool((await params).slug);
   if (!tool) notFound();
   return (
-    <div className="page">
+    <div className="page narrow">
       <SiteHeader title={tool.name} />
       <main>
         <header className="tool-head">
@@ -30,6 +30,10 @@ export default async function ToolPage({ params }: Props) {
         </header>
         <ToolMount slug={tool.slug} />
       </main>
+      <footer className="site-footer">
+        <span><i className="dot" />在浏览器本地运行，文件不会上传</span>
+        {tool.source && <span>源自 <a href={tool.source.url} target="_blank" rel="noopener noreferrer">{tool.source.name}</a></span>}
+      </footer>
     </div>
   );
 }
