@@ -53,6 +53,15 @@ export const tools: Tool[] = [
     keywords: ['bpm', 'key', 'tempo', 'camelot', 'lufs', 'tunebat', 'dj', 'autotune', '速度', '节拍', '调性', '音阶', '伴奏', '修音', '响度', '音乐', '分析'],
   },
   {
+    slug: 'audio-convert',
+    name: '音频转换',
+    tagline: 'MP3、WAV、FLAC、M4A、OGG 互转，也能从视频里取出声音。',
+    category: '音频',
+    added: '2026.11',
+    source: { name: 'Vanilagy/mediabunny', url: 'https://github.com/Vanilagy/mediabunny' },
+    keywords: ['audio', 'convert', 'mp3', 'wav', 'flac', 'm4a', 'aac', 'ogg', 'opus', 'mp4', 'video', 'extract', 'ffmpeg', '转换', '格式', '提取', '音频', '视频', '伴奏', '转码'],
+  },
+  {
     slug: 'pdf-pages',
     name: 'PDF 合并拆分',
     tagline: '合并、拆分 PDF，调整页面顺序，旋转或删掉某几页。',
