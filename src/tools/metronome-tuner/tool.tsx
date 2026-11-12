@@ -2,13 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import MetronomePanel from './metronome';
-import QrPanel from './qr';
 import TunerPanel from './tuner';
 
 const TABS = [
   { id: 'metronome', label: '节拍器', Panel: MetronomePanel },
   { id: 'tuner', label: '调音器', Panel: TunerPanel },
-  { id: 'qr', label: '二维码', Panel: QrPanel },
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
 
@@ -33,19 +31,6 @@ const NOTES: Record<TabId, React.ReactNode> = {
       <p className="fine">音高检测使用 <a href="https://github.com/ianprime0509/pitchy" target="_blank" rel="noopener noreferrer">pitchy</a>（MIT，McLeod Pitch Method）。</p>
     </>
   ),
-  qr: (
-    <>
-      <dl className="notes">
-        <div><dt>隐私</dt><dd>生成和识别都在浏览器里完成，内容和图片不会上传。</dd></div>
-        <div><dt>中间放图</dt><dd>放了图会自动提高容错，挡住一部分也能扫出来。图别太复杂，扫之前自己用手机试一下。</dd></div>
-        <div><dt>识别</dt><dd>一张图里有几个码会都列出来，条形码也能读。</dd></div>
-      </dl>
-      <p className="fine">
-        生成使用 <a href="https://github.com/kozakdenys/qr-code-styling" target="_blank" rel="noopener noreferrer">qr-code-styling</a>（MIT），
-        识别使用 <a href="https://github.com/Sec-ant/zxing-wasm" target="_blank" rel="noopener noreferrer">zxing-wasm</a>（MIT，ZXing-C++ 的 WebAssembly 版）。
-      </p>
-    </>
-  ),
 };
 
 const fromHash = (): TabId => {
@@ -53,7 +38,7 @@ const fromHash = (): TabId => {
   return TABS.some(tab => tab.id === hash) ? hash as TabId : 'metronome';
 };
 
-export default function PocketTools() {
+export default function MetronomeTuner() {
   const [tab, setTab] = useState<TabId>('metronome');
 
   // 地址栏带 #tuner 之类的可以直接打开对应的那个。
@@ -73,7 +58,7 @@ export default function PocketTools() {
   return (
     <div className="tool pocket">
       <div className="panel">
-        <nav className="pocket-tabs" role="tablist" aria-label="小工具">
+        <nav className="pocket-tabs" role="tablist" aria-label="节拍器和调音器">
           {TABS.map(item => (
             <button key={item.id} role="tab" aria-selected={tab === item.id} onClick={() => choose(item.id)}>{item.label}</button>
           ))}

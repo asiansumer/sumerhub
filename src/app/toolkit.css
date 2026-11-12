@@ -175,7 +175,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
   .cutout-foot .icon { margin-left: auto; }
 }
 
-/* 小工具：节拍器、调音器、二维码 */
+/* 节拍器和调音器 */
 .pocket-tabs { display: flex; gap: 4px; padding: 10px 12px 0; border-bottom: 1px solid var(--line); }
 .pocket-tabs button { position: relative; height: 38px; padding: 0 12px; font-family: var(--serif); font-size: 15px; font-weight: 500; color: var(--faint); transition: color .15s; }
 .pocket-tabs button:hover { color: var(--muted); }
@@ -230,52 +230,18 @@ input[type="range"].tempo-range { width: min(360px, 100%); margin-top: 22px; }
 .meter-labels { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; font: 10px var(--mono); color: var(--faint); }
 .trail { width: min(520px, 100%); height: 150px; margin-top: 18px; --line: #242428; }
 
-/* 二维码 */
-.qr .controls { border-bottom: 1px solid var(--line); }
-.qr-make { display: grid; grid-template-columns: minmax(0, 1fr) 300px; }
-.qr-form { display: flex; flex-direction: column; gap: 14px; padding: 20px; border-right: 1px solid var(--line); }
-.qr-form > .segmented { align-self: flex-start; }
-.input { width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--sunken); color: var(--fg); font: inherit; font-size: 14px; outline: 0; transition: border-color .15s; }
-.input:focus { border-color: var(--line-strong); }
-.input::placeholder { color: var(--faint); }
-.input.area { height: auto; min-height: 120px; padding: 10px 12px; line-height: 1.6; resize: vertical; }
-.qr-wifi { display: flex; flex-direction: column; gap: 10px; }
-.qr-wifi-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
-.check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
-.check input { accent-color: var(--fg); }
-.qr-options { display: flex; flex-wrap: wrap; gap: 12px 24px; padding-top: 6px; }
-.qr-logo { display: inline-flex; align-items: center; gap: 4px; }
-.qr-logo img { width: 28px; height: 28px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line-strong); }
-.qr-logo .icon { width: 26px; height: 26px; }
-.qr-output { display: flex; flex-direction: column; align-items: center; padding: 24px 20px;
-  background-color: var(--sunken); background-image: radial-gradient(var(--dots) 1px, transparent 1px); background-size: 16px 16px; background-position: 8px 8px; }
-.qr-card { width: 236px; height: 236px; display: grid; place-items: center; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px #ffffff14, 0 14px 30px -14px #000; overflow: hidden; transition: opacity .2s; }
-.qr-card.checker { background: repeating-conic-gradient(#e8e8ea 0 25%, #fff 0 50%) 0 0 / 14px 14px; }
-.qr-card.empty { opacity: .25; }
-.qr-canvas canvas, .qr-canvas svg { display: block; width: 236px !important; height: 236px !important; }
-.qr-status { margin: 12px 0 0; min-height: 1.5em; font-size: 12px; color: var(--faint); text-align: center; }
-.qr-actions { display: flex; gap: 8px; margin-top: 12px; }
-.qr-found { max-height: 420px; padding-top: 8px; }
-.qr-found .row-text strong.qr-text { white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
-.qr-read .drop:not(.compact) { min-height: 260px; }
-
-/* 小工具的预览图 */
+/* 节拍器和调音器的预览图 */
 .pocket-preview { display: flex; align-items: center; gap: 10px; }
 .pocket-preview .tile { position: relative; width: 58px; height: 58px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); box-shadow: var(--highlight), 0 8px 20px -10px #000; transition: transform .35s cubic-bezier(.3, .7, .2, 1); }
 .pocket-preview .beat { gap: 5px; }
 .pocket-preview .beat i { width: 6px; height: 6px; border-radius: 50%; border: 1px solid var(--line-strong); }
 .pocket-preview .beat i:first-child { width: 8px; height: 8px; background: var(--fg); border-color: var(--fg); }
-.pocket-preview .gauge { z-index: 1; background: var(--raised); border-color: var(--muted); transform: translateY(-4px); }
+.pocket-preview .gauge { background: var(--raised); border-color: var(--muted); }
 .pocket-preview .gauge i { position: absolute; left: 13px; right: 13px; top: 30px; height: 1px; background: var(--faint); }
 .pocket-preview .gauge b { position: absolute; left: 50%; top: 17px; width: 2px; height: 22px; margin-left: 2px; border-radius: 2px; background: var(--ok); transform: rotate(10deg); transform-origin: bottom; transition: transform .35s cubic-bezier(.3, .7, .2, 1); }
-.pocket-preview .code i { position: absolute; width: 14px; height: 14px; border: 3px solid var(--faint); border-radius: 3px; }
-.pocket-preview .code i:nth-child(1) { left: 12px; top: 12px; }
-.pocket-preview .code i:nth-child(2) { right: 12px; top: 12px; }
-.pocket-preview .code i:nth-child(3) { left: 12px; bottom: 12px; }
-.pocket-preview .code u { position: absolute; right: 13px; bottom: 13px; width: 12px; height: 12px; background: radial-gradient(var(--faint) 1.5px, transparent 1.6px) 0 0 / 6px 6px; }
-.card.active .pocket-preview .beat, .drop:hover .pocket-preview .beat { transform: translateY(2px) rotate(-4deg); }
-.card.active .pocket-preview .code, .drop:hover .pocket-preview .code { transform: translateY(2px) rotate(4deg); }
-.card.active .pocket-preview .gauge b { transform: rotate(-2deg); }
+.card.active .pocket-preview .beat { transform: translateY(2px) rotate(-4deg); }
+.card.active .pocket-preview .gauge { transform: translateY(-2px) rotate(3deg); }
+.card.active .card.active .pocket-preview .gauge b { transform: rotate(-2deg); }
 
 @media (max-width: 640px) {
   .pocket-tabs { padding: 6px 6px 0; }
@@ -284,7 +250,5 @@ input[type="range"].tempo-range { width: min(360px, 100%); margin-top: 22px; }
   .tempo-value input { font-size: 64px; }
   .tuner-note { font-size: 80px; min-height: 80px; }
   .button.big { min-width: 110px; }
-  .qr-make { grid-template-columns: 1fr; }
-  .qr-form { border-right: 0; border-bottom: 1px solid var(--line); padding: 16px; }
   .trail { height: 120px; }
 }
