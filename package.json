@@ -1,0 +1,39 @@
+{
+  "name": "sumerhub",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint src",
+    "test": "node --conditions=browser --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@breezystack/lamejs": "1.2.7",
+    "crypto-js": "^4.2.0",
+    "jszip": "^3.10.1",
+    "next": "15.5.27",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-dropzone": "^14.3.8",
+    "react-icons": "^5.5.0",
+    "taglib-wasm": "2.4.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/crypto-js": "^4.2.0",
+    "@types/node": "^20.19.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "browser-id3-writer": "6.2.0",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.27",
+    "typescript": "^5"
+  },
+  "overrides": {
+    "postcss": "8.5.30",
+    "brace-expansion@^1.1.7": "1.1.21",
+    "picomatch@^2.2.1": "2.3.2"
+  }
+}
