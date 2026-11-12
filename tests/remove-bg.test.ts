@@ -28,4 +28,11 @@ test('页面用到的每个模型，构建脚本都会取来，而且固定了�
   // 下载地址里是提交号而不是 main，文件都带 sha256。
   assert.equal((script.match(/resolve\/[0-9a-f]{40}\//g) ?? []).length, models.length);
   assert.equal((script.match(/'[0-9a-f]{64}'/g) ?? []).length, models.length * 3);
+  // 页面里写的模型大小要和取来的文件一样大（文件不在时跳过，比如还没运行过 npm run assets）。
+  const bytes = [...engine.matchAll(/(?:general|fine): (\d{6,})/g)].map(match => Number(match[1]));
+  assert.equal(bytes.length, models.length);
+  folders.forEach((folder, index) => {
+    const file = `public/models/${folder}/onnx/model_fp16.onnx`;
+    if (fs.existsSync(file)) assert.equal(fs.statSync(file).size, bytes[index], folder);
+  });
 });

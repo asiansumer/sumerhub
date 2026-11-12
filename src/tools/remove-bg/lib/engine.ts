@@ -8,6 +8,8 @@ import type { Model } from '../types';
 
 /** 模型文件放在自己的站点上（public/models/ 下面，构建时由 scripts/fetch-assets.mjs 取来），不依赖别的网站。 */
 const FOLDERS: Record<Model, string> = { general: 'remove-bg', fine: 'remove-bg-fine' };
+/** 模型文件的大小（字节），和 scripts/fetch-assets.mjs 取来的文件一致。 */
+const BYTES: Record<Model, number> = { general: 98484532, fine: 88152708 };
 env.allowRemoteModels = false;
 env.allowLocalModels = true;
 env.localModelPath = '/models/';
@@ -17,6 +19,23 @@ if (wasm && wasm.wasmPaths && typeof wasm.wasmPaths === 'object') {
   const paths = wasm.wasmPaths as { mjs?: string; wasm?: string };
   for (const key of ['mjs', 'wasm'] as const) if (paths[key]) paths[key] = '/vendor/ort/' + paths[key]!.split('/').pop();
 }
+
+// 网站的服务器会压缩着发模型文件，这时响应里没有 Content-Length。Transformers.js 不知道总大小，
+// 就报不出下载进度，而且每收到一小块都要重新分配一整块内存，很慢。这里把已知的大小补回去。
+const plainFetch = env.fetch;
+env.fetch = async (input: string | URL, init?: RequestInit) => {
+  const path = new URL(String(input), self.location.href).pathname;
+  const model = (Object.keys(FOLDERS) as Model[]).find(key => path === `/models/${FOLDERS[key]}/onnx/model_fp16.onnx`);
+  if (!model) return plainFetch(input, init);
+  // 模型下载后由 Transformers.js 自己存进浏览器（Cache Storage），不用再进一遍 HTTP 缓存：
+  // 近百 MB 又不带长度的响应，浏览器的 HTTP 缓存可能写不下，连带着让这次下载失败。
+  const response: Response = await plainFetch(input, { ...init, cache: 'no-store' });
+  if (response.status !== 200 || !response.body || response.headers.get('content-length')) return response;
+  const headers = new Headers(response.headers);
+  headers.set('content-length', String(BYTES[model]));
+  headers.delete('content-encoding'); // 拿到手的已经是解压后的内容
+  return new Response(response.body, { status: 200, statusText: response.statusText, headers });
+};
 
 export type Device = 'webgpu' | 'wasm';
 type Remover = ((image: Blob) => Promise<RawImage | RawImage[]>) & { dispose?: () => Promise<unknown> };
