@@ -18,8 +18,8 @@ export type Tool = {
   category: string;
   /** 加入的年月，例如 2026.11。 */
   added: string;
-  /** 灵感或代码来自哪个项目，会显示在工具页底部。 */
-  source?: { name: string; url: string };
+  /** 代码或灵感来自哪个项目，会显示在工具页底部。只是借鉴想法时加 inspired，显示成「灵感来自」。 */
+  source?: { name: string; url: string; inspired?: boolean };
   /** 给搜索用的额外关键词。 */
   keywords?: string[];
 };
@@ -33,6 +33,24 @@ export const tools: Tool[] = [
     added: '2026.11',
     source: { name: 'asiansumer/NCM-Swift', url: 'https://github.com/asiansumer/NCM-Swift' },
     keywords: ['ncm', 'mp3', '网易云', 'netease', 'flac', '音乐', '转换'],
+  },
+  {
+    slug: 'image-compress',
+    name: '图片压缩',
+    tagline: '压小 JPG、PNG、WebP、HEIC，顺便转格式、改尺寸。',
+    category: '图片',
+    added: '2026.11',
+    source: { name: 'GoogleChromeLabs/squoosh', url: 'https://github.com/GoogleChromeLabs/squoosh' },
+    keywords: ['image', 'compress', 'jpg', 'jpeg', 'png', 'webp', 'heic', 'squoosh', '压缩', '图片', '转换', '缩小'],
+  },
+  {
+    slug: 'audio-analyze',
+    name: '音频分析',
+    tagline: '看一首歌的 BPM、调性、Camelot 编号和响度。',
+    category: '音频',
+    added: '2026.11',
+    source: { name: 'Tunebat', url: 'https://tunebat.com/Analyzer', inspired: true },
+    keywords: ['bpm', 'key', 'tempo', 'camelot', 'lufs', 'tunebat', 'dj', '速度', '节拍', '调性', '响度', '音乐', '分析'],
   },
 ];
 

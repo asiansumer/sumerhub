@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import '@fontsource-variable/source-serif-4/wght.css';
 import '@fontsource/noto-serif-sc/500.css';
 import './globals.css';
+import './toolkit.css';
 
 export const metadata: Metadata = {
   title: { default: 'Sumerhub', template: '%s · Sumerhub' },
