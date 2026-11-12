@@ -4,14 +4,15 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useDropzone, type FileRejection } from 'react-dropzone';
+import type { FileRejection } from 'react-dropzone';
+import DropArea from '@/components/drop-area';
+import { downloadZip as zipDownload } from '@/lib/download';
+import { formatSize as size } from '@/lib/format';
 import { PiArrowDown, PiMusicNoteSimple, PiPauseFill, PiPlayFill } from 'react-icons/pi';
 import NcmPreview from './preview';
 import { convertFile, uniqueName, MAX_FILE_SIZE, type ConvertedFile } from './lib/convert';
-import './ncm.css';
 
 type Failure = { name: string; error: string };
-const size = (bytes: number) => bytes < 1048576 ? Math.max(1, Math.round(bytes / 1024)) + ' KB' : (bytes / 1048576).toFixed(1) + ' MB';
 
 export default function NcmToMp3() {
   const [working, setWorking] = useState(false);
@@ -71,11 +72,6 @@ export default function NcmToMp3() {
     if (missingArtwork) setMessage(`${missingArtwork} 首封面暂时无法获取，音频可正常下载。联网后可重新转换。`);
   }, [clearResults, zipBusy]);
 
-  const { getRootProps, getInputProps, open, isDragActive } = useDropzone({
-    onDrop: start, accept: { 'application/octet-stream': ['.ncm'] }, maxSize: MAX_FILE_SIZE,
-    noClick: true, noKeyboard: true, disabled: working || zipBusy,
-  });
-
   function cancel() {
     controller.current?.abort(); controller.current = null; setWorking(false);
     setMessage(owned.current.length ? '已取消，完成的文件已保留。' : '已取消。');
@@ -92,36 +88,18 @@ export default function NcmToMp3() {
     if (!chosen.length || zipBusy) return;
     setZipBusy(true); setMessage('');
     try {
-      const { default: JSZip } = await import('jszip'); const zip = new JSZip();
-      for (const item of chosen) zip.file(item.name, await item.blob.arrayBuffer());
-      const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE' });
-      const url = URL.createObjectURL(blob); urls.current.push(url);
-      const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'sumerhub-mp3.zip';
-      document.body.appendChild(anchor); anchor.click(); anchor.remove();
+      await zipDownload(chosen, 'sumerhub-mp3.zip');
     } catch { setMessage('打包失败，请重试或单独下载。'); }
     finally { setZipBusy(false); }
   }
 
   const hasOutput = results.length > 0 || working;
-  const pick = () => { if (!working && !zipBusy) open(); };
 
   return (
-    <div className="ncm">
+    <div className="tool">
       <div className="panel">
-        <div {...getRootProps({ className: 'drop' + (isDragActive ? ' dragging' : '') + (hasOutput ? ' compact' : ''), onClick: pick })}
-          role="button" tabIndex={0} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); pick(); } }}>
-          <input {...getInputProps()} aria-label="选择 NCM 文件" />
-          {hasOutput ? (
-            <><span className="drop-title">{isDragActive ? '松开开始转换' : '继续拖入文件'}</span><span className="button ghost">再选一批</span></>
-          ) : (
-            <>
-              <NcmPreview />
-              <span className="drop-title">{isDragActive ? '松开开始转换' : '把 .ncm 文件拖到这里'}</span>
-              <span className="drop-hint">可多选，单个不超过 100 MB</span>
-              <span className="button">选择文件</span>
-            </>
-          )}
-        </div>
+        <DropArea accept={{ 'application/octet-stream': ['.ncm'] }} maxSize={MAX_FILE_SIZE} disabled={working || zipBusy} compact={hasOutput} onFiles={start}
+          title="把 .ncm 文件拖到这里" hint="可多选，单个不超过 100 MB" preview={<NcmPreview />} inputLabel="选择 NCM 文件" />
 
         {working && (
           <div className="progress" aria-live="polite">
@@ -152,15 +130,15 @@ export default function NcmToMp3() {
                 {results.length > 1 && <button className="button" onClick={downloadZip} disabled={zipBusy}>{zipBusy ? '打包中…' : '全部下载'}</button>}
               </div>
             </div>
-            <ul className="tracks">
+            <ul className="rows">
               {results.map(item => (
-                <li key={item.id} className={audioId === item.id ? 'track playing' : 'track'}>
-                  <span className="cover">{item.coverUrl ? <img src={item.coverUrl} alt="" /> : <PiMusicNoteSimple size={16} />}</span>
-                  <div className="track-text">
+                <li key={item.id} className={audioId === item.id ? 'row playing' : 'row'}>
+                  <span className="thumb">{item.coverUrl ? <img src={item.coverUrl} alt="" /> : <PiMusicNoteSimple size={16} />}</span>
+                  <div className="row-text">
                     <strong title={item.name}>{item.title}</strong>
                     <span>{[item.artist, item.album].filter(Boolean).join(' · ') || 'MP3'}</span>
                   </div>
-                  <span className="track-size">{size(item.blob.size)}</span>
+                  <span className="row-meta optional">{size(item.blob.size)}</span>
                   <button className="icon" onClick={() => toggleAudio(item)} aria-label={(audioId === item.id ? '暂停 ' : '试听 ') + item.name}>
                     {audioId === item.id ? <PiPauseFill size={14} /> : <PiPlayFill size={14} />}
                   </button>

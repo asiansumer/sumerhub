@@ -32,7 +32,7 @@ export default async function ToolPage({ params }: Props) {
       </main>
       <footer className="site-footer">
         <span><i className="dot" />在浏览器本地运行，文件不会上传</span>
-        {tool.source && <span>源自 <a href={tool.source.url} target="_blank" rel="noopener noreferrer">{tool.source.name}</a></span>}
+        {tool.source && <span>{tool.source.inspired ? '灵感来自' : '源自'} <a href={tool.source.url} target="_blank" rel="noopener noreferrer">{tool.source.name}</a></span>}
       </footer>
     </div>
   );
