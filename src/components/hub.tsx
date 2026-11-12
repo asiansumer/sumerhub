@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { tools } from '@/tools/registry';
+import { REPOSITORY, tools } from '@/tools/registry';
 import { previews } from '@/tools/previews';
 import SiteHeader from './site-header';
 
@@ -80,7 +80,7 @@ export default function Hub() {
         ))}
         {!visible.length && <p className="empty">没有找到「{query}」。</p>}
       </main>
-      <footer className="site-footer"><span><i className="dot" />所有工具都在浏览器本地运行，文件不会上传</span></footer>
+      <footer className="site-footer"><span><i className="dot" />所有工具都在浏览器本地运行，文件不会上传</span><a href={REPOSITORY} target="_blank" rel="noopener noreferrer">源代码</a></footer>
     </div>
   );
 }

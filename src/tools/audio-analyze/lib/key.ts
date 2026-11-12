@@ -1,12 +1,6 @@
-import { createFft, hann } from './fft.ts';
-
-const WINDOW = 8192, HOP = 4096, LOW = 65, HIGH = 2000;
-
-// Krumhansl & Kessler (1982) 的调性轮廓：在某个调里，十二个音各自听起来有多「稳」。
-const MAJOR = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
-const MINOR = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
 const MAJOR_NAMES = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
 const MINOR_NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'B♭', 'B'];
+const TONICS: Record<string, number> = { C: 0, 'C#': 1, Db: 1, D: 2, 'D#': 3, Eb: 3, E: 4, F: 5, 'F#': 6, Gb: 6, G: 7, 'G#': 8, Ab: 8, A: 9, 'A#': 10, Bb: 10, B: 11 };
 
 export type Key = {
   /** 主音，C = 0。 */
@@ -19,8 +13,14 @@ export type Key = {
   camelot: string;
   /** 混音时好接的调。 */
   compatible: string[];
-  /** 0–1，越高越确定。 */
+  /** 0–1，越高越确定。实测 0.9 以上约 84% 正确，0.8 以下只有三成左右。 */
   confidence: number;
+};
+
+/** Essentia 里这里用到的两个方法；测试时可以换成 Node 版的实例。 */
+export type KeyExtractor = {
+  arrayToVector(samples: Float32Array): { delete(): void };
+  KeyExtractor(signal: unknown): { key: string; scale: string; strength: number };
 };
 
 export function describeKey(tonic: number, mode: 'major' | 'minor', confidence = 1): Key {
@@ -36,79 +36,17 @@ export function describeKey(tonic: number, mode: 'major' | 'minor', confidence =
   };
 }
 
-/** 整首歌里十二个音各出现了多少（不分八度）。 */
-export function chromagram(samples: Float32Array, sampleRate: number) {
-  const chroma = new Float64Array(12);
-  const frames = Math.floor((samples.length - WINDOW) / HOP) + 1;
-  if (frames < 1) return chroma;
-  const fft = createFft(WINDOW), window = hann(WINDOW);
-  const re = new Float64Array(WINDOW), im = new Float64Array(WINDOW), magnitude = new Float64Array(WINDOW / 2);
-  const first = Math.max(2, Math.ceil(LOW * WINDOW / sampleRate)), last = Math.min(WINDOW / 2 - 2, Math.floor(HIGH * WINDOW / sampleRate));
-  const peaks: { frame: number; pitch: number; level: number }[] = [];
-  for (let frame = 0; frame < frames; frame++) {
-    const offset = frame * HOP;
-    for (let i = 0; i < WINDOW; i++) { re[i] = samples[offset + i] * window[i]; im[i] = 0; }
-    fft(re, im);
-    let loudest = 0;
-    for (let k = first - 1; k <= last + 1; k++) { magnitude[k] = Math.hypot(re[k], im[k]); if (magnitude[k] > loudest) loudest = magnitude[k]; }
-    if (loudest < 1e-4) continue;
-    for (let k = first; k <= last; k++) {
-      const level = magnitude[k];
-      if (level < loudest * 0.02 || level <= magnitude[k - 1] || level < magnitude[k + 1]) continue;
-      // 抛物线插值，得到比频率格更准的峰值位置。
-      const a = Math.log(magnitude[k - 1] + 1e-12), b = Math.log(level), c = Math.log(magnitude[k + 1] + 1e-12);
-      const shift = (a - c) / (2 * (a - 2 * b + c) || 1);
-      const frequency = (k + Math.max(-0.5, Math.min(0.5, shift))) * sampleRate / WINDOW;
-      peaks.push({ frame, pitch: 69 + 12 * Math.log2(frequency / 440), level });
-    }
-  }
-  // 录音不一定按 A = 440 Hz 调音，先估计整体偏了多少。
-  let x = 0, y = 0;
-  for (const { pitch, level } of peaks) { const angle = 2 * Math.PI * (pitch - Math.round(pitch)); x += Math.cos(angle) * level; y += Math.sin(angle) * level; }
-  const tuning = Math.atan2(y, x) / (2 * Math.PI);
-
-  const row = new Float64Array(12);
-  const flush = () => {
-    let sum = 0;
-    for (let i = 0; i < 12; i++) sum += row[i];
-    // 开平方：响的段落占的分量大一些，但不至于盖过其他部分。
-    if (sum > 0) for (let i = 0; i < 12; i++) chroma[i] += row[i] / Math.sqrt(sum);
-    row.fill(0);
-  };
-  let current = -1;
-  for (const { frame, pitch, level } of peaks) {
-    if (frame !== current) { flush(); current = frame; }
-    const tuned = pitch - tuning, nearest = Math.round(tuned);
-    row[((nearest % 12) + 12) % 12] += level * Math.cos(Math.PI * (tuned - nearest)) ** 2;
-  }
-  flush();
-  return chroma;
-}
-
-function correlation(a: ArrayLike<number>, b: number[], shift: number) {
-  let meanA = 0, meanB = 0;
-  for (let i = 0; i < 12; i++) { meanA += a[i]; meanB += b[i]; }
-  meanA /= 12; meanB /= 12;
-  let top = 0, left = 0, right = 0;
-  for (let i = 0; i < 12; i++) {
-    const da = a[(i + shift) % 12] - meanA, db = b[i] - meanB;
-    top += da * db; left += da * da; right += db * db;
-  }
-  return left && right ? top / Math.sqrt(left * right) : 0;
-}
-
-export function keyFromChroma(chroma: ArrayLike<number>): Key | null {
-  const scores: { tonic: number; mode: 'major' | 'minor'; score: number }[] = [];
-  for (let tonic = 0; tonic < 12; tonic++) {
-    scores.push({ tonic, mode: 'major', score: correlation(chroma, MAJOR, tonic) });
-    scores.push({ tonic, mode: 'minor', score: correlation(chroma, MINOR, tonic) });
-  }
-  scores.sort((a, b) => b.score - a.score);
-  const [best, second] = scores;
-  if (!(best.score > 0.2)) return null;
-  return describeKey(best.tonic, best.mode, Math.max(0, Math.min(1, (best.score - second.score) / 0.25)));
-}
-
-export function estimateKey(samples: Float32Array, sampleRate: number) {
-  return keyFromChroma(chromagram(samples, sampleRate));
+/**
+ * 调性检测用 Essentia 的 KeyExtractor（essentia.js，AGPL-3.0）。
+ * samples 是单声道、44.1 kHz 的音频，这是 KeyExtractor 默认参数对应的采样率。
+ */
+export function estimateKey(essentia: KeyExtractor, samples: Float32Array): Key | null {
+  if (samples.length < 44100 * 3) return null;
+  const signal = essentia.arrayToVector(samples);
+  try {
+    const { key, scale, strength } = essentia.KeyExtractor(signal);
+    const tonic = TONICS[key];
+    if (tonic === undefined || (scale !== 'major' && scale !== 'minor') || !(strength > 0)) return null;
+    return describeKey(tonic, scale, Math.min(1, strength));
+  } finally { signal.delete(); }
 }

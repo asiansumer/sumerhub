@@ -59,13 +59,17 @@ tests/                     回归测试和测试素材
 public/licenses/           第三方许可证全文
 ```
 
+## 许可
+
+Sumerhub 按 [AGPL-3.0](LICENSE) 开源：音频分析用到的 essentia.js 是 AGPL 许可，整个网站因此也按 AGPL 发布，页脚有源代码链接。
+
 ## 第三方许可
 
 NCM 转 MP3 使用 [`@breezystack/lamejs`](https://github.com/shijinyu/lamejs)（LGPL-3.0，基于 LAME）编码 MP3，使用 [`taglib-wasm`](https://github.com/CharlesWiltgen/TagLib-Wasm)（MIT，内含 LGPL-2.1-or-later 的 TagLib WebAssembly）读写标签。
 
 图片压缩使用 [`@jsquash/jpeg`、`@jsquash/webp`](https://github.com/jamsinclair/jSquash)（Apache-2.0，Squoosh 的 MozJPEG 和 libwebp 编码器）、[`upng-js`](https://github.com/photopea/UPNG.js)（MIT，内含 pako）和 [`heic2any`](https://github.com/alexcorvi/heic2any)（MIT，内含 LGPL-3.0 的 libheif）。
 
-音频分析的 BPM 使用 [`realtime-bpm-analyzer`](https://github.com/dlepaux/realtime-bpm-analyzer)（Apache-2.0）的 tempogram 检测器，响度和真峰值使用 [`ebur128-wasm`](https://github.com/streamonkey/ebur128_wasm)（Apache-2.0，Rust 的 ebur128 库编译成 WebAssembly），标签读取同样使用 `taglib-wasm`。调性目前是本仓库自己的实现（色度图 + Krumhansl & Kessler 1982 的调性轮廓）。
+音频分析的 BPM 使用 [`realtime-bpm-analyzer`](https://github.com/dlepaux/realtime-bpm-analyzer)（Apache-2.0）的 tempogram 检测器，响度和真峰值使用 [`ebur128-wasm`](https://github.com/streamonkey/ebur128_wasm)（Apache-2.0，Rust 的 ebur128 库编译成 WebAssembly），标签读取同样使用 `taglib-wasm`。调性使用 [`essentia.js`](https://github.com/MTG/essentia.js)（AGPL-3.0）的 KeyExtractor。
 
 许可证全文在 `public/licenses/`。
 

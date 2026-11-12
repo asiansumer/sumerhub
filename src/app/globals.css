@@ -73,6 +73,7 @@ kbd { font: 11px var(--mono); color: var(--faint); border: 1px solid var(--line)
 .site-footer span { display: inline-flex; align-items: center; gap: 8px; }
 .site-footer a { color: var(--muted); transition: color .15s; }
 .site-footer a:hover { color: var(--fg); }
+.site-footer .sep { font-style: normal; color: var(--line-strong); }
 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 18%, transparent); }
 
 /* 通用的转换预览图 */

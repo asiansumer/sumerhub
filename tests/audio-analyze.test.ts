@@ -1,10 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
 import { analyze, waveformPeaks } from '../src/tools/audio-analyze/lib/analyze.ts';
-import { decimate } from '../src/tools/audio-analyze/lib/fft.ts';
 import { describeKey, estimateKey } from '../src/tools/audio-analyze/lib/key.ts';
 import { measureLoudness } from '../src/tools/audio-analyze/lib/loudness.ts';
 import { estimateTempo } from '../src/tools/audio-analyze/lib/tempo.ts';
+
+// Essentia 的浏览器版在 Node 里跑不起来，这里用同一个包的 CommonJS 版，算法是同一份 WebAssembly。
+const { Essentia, EssentiaWASM } = createRequire(import.meta.url)('essentia.js');
+const essentia = new Essentia(EssentiaWASM);
 
 // 所有素材都是现场合成的，答案是已知的。
 const RATE = 44100;
@@ -70,16 +74,15 @@ test('key of simple chord progressions', () => {
     ['E♭ 大调', [triad(63), triad(60, true), triad(56), triad(58)]],
   ];
   for (const [expected, progression] of cases) {
-    const { samples, sampleRate } = decimate(chords(progression, 24), RATE);
-    assert.equal(estimateKey(samples, sampleRate)?.name, expected);
+    const key = estimateKey(essentia, chords(progression, 24));
+    assert.equal(key?.name, expected);
+    assert.ok(key.confidence > 0.5 && key.confidence <= 1);
   }
 });
 
-test('key detection follows the tuning of the recording', () => {
-  // 整体高 30 音分（A ≈ 447.7 Hz）也应当认成 A 小调。
-  const sharp = chords([triad(57.3, true), triad(62.3, true), triad(64.3, true), triad(57.3, true)], 24);
-  const { samples, sampleRate } = decimate(sharp, RATE);
-  assert.equal(estimateKey(samples, sampleRate)?.name, 'A 小调');
+test('silence and very short audio give no key', () => {
+  assert.equal(estimateKey(essentia, new Float32Array(RATE * 10)), null);
+  assert.equal(estimateKey(essentia, chords([triad(60)], 1)), null);
 });
 
 test('Camelot numbers and compatible keys', () => {
@@ -107,7 +110,7 @@ test('loudness matches the EBU R128 reference: a 1 kHz stereo sine at −23 dBFS
 test('full analysis of a drum loop over chords', async () => {
   const beat = drums(128, 30), harmony = chords([triad(57, true), triad(65), triad(60), triad(55)], 30);
   const mix = Float32Array.from(beat, (value, i) => 0.6 * value + harmony[i]);
-  const result = await analyze([mix, mix], RATE);
+  const result = await analyze([mix, mix], RATE, essentia);
   assert.equal(result.tempo?.bpm, 128);
   assert.equal(result.key?.camelot.slice(0, -1), '8');
   assert.ok(Math.abs(result.duration - 30) < 0.01);

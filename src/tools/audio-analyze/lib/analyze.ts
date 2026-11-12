@@ -1,5 +1,4 @@
-import { decimate } from './fft.ts';
-import { estimateKey, type Key } from './key.ts';
+import { estimateKey, type Key, type KeyExtractor } from './key.ts';
 import { measureLoudness } from './loudness.ts';
 import { estimateTempo, type Tempo } from './tempo.ts';
 
@@ -14,8 +13,14 @@ export type Analysis = {
 };
 
 const WAVEFORM_BARS = 180;
-/** 太长的音频只分析中间这一段，足够判断速度和调性。 */
-const MAX_SECONDS = 480;
+/** 太长的音频只取中间一段来判断速度和调性，免得等太久。 */
+const TEMPO_SECONDS = 480, KEY_SECONDS = 240;
+const middle = (samples: Float32Array, sampleRate: number, seconds: number) => {
+  const limit = Math.floor(seconds * sampleRate);
+  if (samples.length <= limit) return samples;
+  const start = Math.floor((samples.length - limit) / 2);
+  return samples.subarray(start, start + limit);
+};
 
 export function waveformPeaks(channels: Float32Array[], bars = WAVEFORM_BARS) {
   const length = channels[0]?.length ?? 0, size = length / bars, output: number[] = [];
@@ -31,17 +36,14 @@ export function waveformPeaks(channels: Float32Array[], bars = WAVEFORM_BARS) {
   return output.map(value => loudest ? Math.round(value / loudest * 1000) / 1000 : 0);
 }
 
-export async function analyze(channels: Float32Array[], sampleRate: number): Promise<Analysis> {
+export async function analyze(channels: Float32Array[], sampleRate: number, essentia: KeyExtractor): Promise<Analysis> {
   const length = channels[0]?.length ?? 0;
   const mono = new Float32Array(length);
   for (const channel of channels) for (let i = 0; i < length; i++) mono[i] += channel[i] / channels.length;
-  const limit = Math.floor(MAX_SECONDS * sampleRate), start = length > limit ? Math.floor((length - limit) / 2) : 0;
-  const excerpt = length > limit ? mono.subarray(start, start + limit) : mono;
-  const reduced = decimate(excerpt, sampleRate);
   return {
     duration: length / sampleRate,
-    tempo: await estimateTempo(excerpt, sampleRate),
-    key: estimateKey(reduced.samples, reduced.sampleRate),
+    tempo: await estimateTempo(middle(mono, sampleRate, TEMPO_SECONDS), sampleRate),
+    key: estimateKey(essentia, middle(mono, sampleRate, KEY_SECONDS)),
     ...measureLoudness(channels, sampleRate),
     waveform: waveformPeaks(channels),
   };

@@ -9,6 +9,9 @@
  * 首页列表、搜索、工具页标题和 SEO 都从这里自动生成。
  */
 
+/** 网站按 AGPL-3.0 开源，页脚要给出源代码的地址。 */
+export const REPOSITORY = 'https://github.com/asiansumer/sumerhub';
+
 export type Tool = {
   slug: string;
   name: string;

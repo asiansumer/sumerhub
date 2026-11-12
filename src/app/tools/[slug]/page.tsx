@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getTool, tools } from '@/tools/registry';
+import { getTool, tools, REPOSITORY } from '@/tools/registry';
 import SiteHeader from '@/components/site-header';
 import ToolMount from '@/components/tool-mount';
 
@@ -32,7 +32,10 @@ export default async function ToolPage({ params }: Props) {
       </main>
       <footer className="site-footer">
         <span><i className="dot" />在浏览器本地运行，文件不会上传</span>
-        {tool.source && <span>{tool.source.inspired ? '灵感来自' : '源自'} <a href={tool.source.url} target="_blank" rel="noopener noreferrer">{tool.source.name}</a></span>}
+        <span>
+          {tool.source && <>{tool.source.inspired ? '灵感来自' : '源自'} <a href={tool.source.url} target="_blank" rel="noopener noreferrer">{tool.source.name}</a><i className="sep">·</i></>}
+          <a href={REPOSITORY} target="_blank" rel="noopener noreferrer">源代码</a>
+        </span>
       </footer>
     </div>
   );

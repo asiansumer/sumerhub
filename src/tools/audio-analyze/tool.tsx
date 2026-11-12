@@ -223,7 +223,7 @@ export default function AudioAnalyze() {
                           <div>
                             <dt>调性</dt>
                             <dd>{analysis.key ? note(analysis.key.name) : '—'}</dd>
-                            <small>{analysis.key ? analysis.key.short + (analysis.key.confidence < 0.15 ? ' · 把握不大' : '') : '听不出明确的调'}</small>
+                            <small>{analysis.key ? analysis.key.short + (analysis.key.confidence < 0.8 ? ' · 把握不大' : '') : '听不出明确的调'}</small>
                           </div>
                           <div>
                             <dt>Camelot</dt>
@@ -250,10 +250,11 @@ export default function AudioAnalyze() {
       <dl className="notes">
         <div><dt>隐私</dt><dd>音频只在浏览器里分析，不会上传。关掉页面后结果会清除。</dd></div>
         <div><dt>BPM</dt><dd>结果取 90–180 之间的整数。慢歌可能显示成两倍，另一个可能的数写在下面。</dd></div>
-        <div><dt>调性</dt><dd>按整首歌的和声估算，转调多的歌可能不准。Camelot 编号相邻的歌混在一起更顺。</dd></div>
+        <div><dt>调性</dt><dd>按整首歌的和声估算，实测十首里大约对六首，标了「把握不大」的更要留意。Camelot 编号相邻的歌混在一起更顺。</dd></div>
       </dl>
       <p className="fine">
         BPM 检测使用 <a href="https://github.com/dlepaux/realtime-bpm-analyzer" target="_blank" rel="noopener noreferrer">realtime-bpm-analyzer</a>，
+        调性检测使用 <a href="https://github.com/MTG/essentia.js" target="_blank" rel="noopener noreferrer">essentia.js</a>，
         响度按 EBU R128 测量，使用 <a href="https://github.com/streamonkey/ebur128_wasm" target="_blank" rel="noopener noreferrer">ebur128-wasm</a>，
         标签读取使用 <a href="/licenses/taglib-LGPL-2.1.txt" target="_blank">TagLib</a>。
       </p>
