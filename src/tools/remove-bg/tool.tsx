@@ -9,7 +9,7 @@ import { PiArrowDown } from 'react-icons/pi';
 import DropArea from '@/components/drop-area';
 import { downloadZip } from '@/lib/download';
 import { formatSize, uniqueFileName } from '@/lib/format';
-import { compose } from './lib/compose';
+import { compose, thumbnail } from './lib/compose';
 import RemoveBgPreview from './preview';
 import { backgrounds, extensions, fill, models, outputFormat, type CutRequest, type CutResponse, type Settings } from './types';
 
@@ -18,16 +18,28 @@ const MAX_FILES = 30;
 
 type Item = {
   id: string; name: string;
-  /** 交给模型的图：一般就是原文件，HEIC 会先解码成 PNG。 */
-  source: Blob; originalUrl: string;
+  /** 交给模型的图：一般就是原文件；浏览器自己解不了的 HEIC 会先解码成 PNG。 */
+  source: Blob;
+  /** 原图的小图，卡片上显示用。 */
+  originalUrl: string;
   status: 'working' | 'done' | 'error'; error?: string;
+  /** 浏览器报的原话，出错时小字显示，方便排查。 */
+  detail?: string;
   /** 抠好的透明 PNG。换背景、换格式都从它出发，不用重新抠。 */
   cutout?: Blob; width?: number; height?: number;
+  /** 抠图结果的小图，卡片上显示用。 */
+  previewUrl?: string;
   /** 按当前设置导出的文件。 */
   blob?: Blob; url?: string; format?: 'png' | 'jpeg';
 };
 
 const isHeic = (file: File) => /\.(heic|heif)$/i.test(file.name) || /image\/hei[cf]/.test(file.type);
+/** 放掉一张图占着的 blob URL。original 为 false 时留着原图的小图（重新抠的时候还要显示）。 */
+function release(item: Item, original = true) {
+  if (original && item.originalUrl) URL.revokeObjectURL(item.originalUrl);
+  if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+  if (item.url) URL.revokeObjectURL(item.url);
+}
 
 export default function RemoveBg() {
   const [items, setItems] = useState<Item[]>([]);
@@ -44,6 +56,8 @@ export default function RemoveBg() {
   const settingsRef = useRef(settings);
   const queue = useRef<string[]>([]);
   const busy = useRef(false);
+  /** 导出一张一张来：几千万像素的图同时导出好几张，手机内存不够。 */
+  const exporting = useRef<Promise<void>>(Promise.resolve());
 
   const update = useCallback((next: Item[]) => { itemsRef.current = next; setItems(next); }, []);
   const patch = useCallback((id: string, change: Partial<Item>) => {
@@ -51,16 +65,18 @@ export default function RemoveBg() {
   }, [update]);
 
   /** 按当前设置把抠好的图导出一遍。设置中途又变了的话，这次结果作废。 */
-  const render = useCallback(async (id: string) => {
-    const item = itemsRef.current.find(entry => entry.id === id), used = settingsRef.current;
-    if (!item?.cutout) return;
-    try {
-      const blob = await compose(item.cutout, used);
-      const latest = itemsRef.current.find(entry => entry.id === id);
-      if (!latest || settingsRef.current !== used) return;
-      if (latest.url) URL.revokeObjectURL(latest.url);
-      patch(id, { status: 'done', blob, url: URL.createObjectURL(blob), format: outputFormat(used), error: undefined });
-    } catch (error) { patch(id, { status: 'error', error: error instanceof Error ? error.message : '导出失败' }); }
+  const render = useCallback((id: string) => {
+    exporting.current = exporting.current.then(async () => {
+      const item = itemsRef.current.find(entry => entry.id === id), used = settingsRef.current;
+      if (!item?.cutout) return;
+      try {
+        const blob = await compose(item.cutout, used);
+        const latest = itemsRef.current.find(entry => entry.id === id);
+        if (!latest || latest.cutout !== item.cutout || settingsRef.current !== used) return;
+        if (latest.url) URL.revokeObjectURL(latest.url);
+        patch(id, { status: 'done', blob, url: URL.createObjectURL(blob), format: outputFormat(used), error: undefined, detail: undefined });
+      } catch (error) { patch(id, { status: 'error', error: error instanceof Error ? error.message : '导出失败' }); }
+    });
   }, [patch]);
 
   const pump = useCallback(() => {
@@ -76,8 +92,8 @@ export default function RemoveBg() {
       if (data.kind === 'model') { setModel(data.loaded < data.total ? { loaded: data.loaded, total: data.total } : null); return; }
       if (data.id !== item.id) return;
       setModel(null);
-      if (data.kind === 'done') { setDevice(data.device); patch(item.id, { cutout: data.cutout, width: data.width, height: data.height }); void render(item.id); }
-      else patch(item.id, { status: 'error', error: data.error });
+      if (data.kind === 'done') { setDevice(data.device); patch(item.id, { cutout: data.cutout, previewUrl: URL.createObjectURL(data.preview), width: data.width, height: data.height }); render(item.id); }
+      else patch(item.id, { status: 'error', error: data.error, detail: data.detail });
       finish();
     };
     current.onerror = () => { setModel(null); patch(item.id, { status: 'error', error: '抠图失败，请重试' }); current.terminate(); worker.current = null; finish(); };
@@ -98,20 +114,20 @@ export default function RemoveBg() {
       const ids = itemsRef.current.filter(item => item.originalUrl).map(item => item.id);
       update(itemsRef.current.map(item => {
         if (!ids.includes(item.id)) return item;
-        if (item.url) URL.revokeObjectURL(item.url);
-        return { ...item, status: 'working' as const, error: undefined, cutout: undefined, blob: undefined, url: undefined };
+        release(item, false);
+        return { ...item, status: 'working' as const, error: undefined, detail: undefined, cutout: undefined, previewUrl: undefined, blob: undefined, url: undefined };
       }));
       queue.current = ids;
       pump();
       return;
     }
-    const timer = setTimeout(() => { itemsRef.current.forEach(item => { if (item.cutout) void render(item.id); }); }, 120);
+    const timer = setTimeout(() => { itemsRef.current.forEach(item => { if (item.cutout) render(item.id); }); }, 120);
     return () => clearTimeout(timer);
   }, [settings, render, pump, update]);
 
   useEffect(() => () => {
     worker.current?.terminate();
-    itemsRef.current.forEach(item => { URL.revokeObjectURL(item.originalUrl); if (item.url) URL.revokeObjectURL(item.url); });
+    itemsRef.current.forEach(item => release(item));
   }, []);
 
   const add = useCallback(async (files: File[], rejected: FileRejection[] = []) => {
@@ -122,21 +138,23 @@ export default function RemoveBg() {
     setMessage(problems.join(' '));
     for (const file of files) {
       const id = crypto.randomUUID();
-      if (!isHeic(file)) {
-        update([...itemsRef.current, { id, name: file.name, source: file, originalUrl: URL.createObjectURL(file), status: 'working' }]);
-        queue.current.push(id); pump();
-        continue;
-      }
-      // HEIC 浏览器不认识，先用 libheif 解码，再走和其他图片一样的流程。
       update([...itemsRef.current, { id, name: file.name, source: file, originalUrl: '', status: 'working' }]);
-      try {
-        const { default: heic2any } = await import('heic2any');
-        const decoded = await heic2any({ blob: file, toType: 'image/png' });
-        const source = Array.isArray(decoded) ? decoded[0] : decoded;
-        if (!itemsRef.current.some(item => item.id === id)) continue;
-        patch(id, { source, originalUrl: URL.createObjectURL(source) });
-        queue.current.push(id); pump();
-      } catch { patch(id, { status: 'error', error: '无法读取这张 HEIC 图片' }); }
+      let source: Blob = file;
+      // 先做一张小图。做得出来说明浏览器能解这张图（Safari 连 HEIC 也能解），原文件直接交给模型。
+      let small = await thumbnail(file).catch(() => null);
+      if (!small && isHeic(file)) {
+        // 这个浏览器不认识 HEIC：用 libheif 解码成 PNG，再走和其他图片一样的流程。
+        try {
+          const { default: heic2any } = await import('heic2any');
+          const decoded = await heic2any({ blob: file, toType: 'image/png' });
+          source = Array.isArray(decoded) ? decoded[0] : decoded;
+          small = await thumbnail(source);
+        } catch { small = null; }
+      }
+      if (!itemsRef.current.some(item => item.id === id)) continue;
+      if (!small) { patch(id, { status: 'error', error: isHeic(file) ? '无法读取这张 HEIC 图片' : '无法读取这张图片' }); continue; }
+      patch(id, { source, originalUrl: URL.createObjectURL(small) });
+      queue.current.push(id); pump();
     }
   }, [patch, pump, update]);
 
@@ -144,7 +162,7 @@ export default function RemoveBg() {
     queue.current = [];
     // 正在抠的那张直接中断；模型已经在浏览器缓存里，下次不用重新下载。
     if (busy.current) { worker.current?.terminate(); worker.current = null; busy.current = false; }
-    itemsRef.current.forEach(item => { URL.revokeObjectURL(item.originalUrl); if (item.url) URL.revokeObjectURL(item.url); });
+    itemsRef.current.forEach(item => release(item));
     update([]); setMessage(''); setModel(null); setPeek(null);
   }
 
@@ -223,17 +241,17 @@ export default function RemoveBg() {
             </div>
             <ul className="cutouts">
               {named.map(item => {
-                const original = peek === item.id || !item.url;
+                const original = peek === item.id || !item.url || !item.previewUrl;
                 return (
                   <li key={item.id} className={'cutout' + (item.status === 'working' ? ' working' : '')}>
                     <div className={'cutout-view' + (original ? '' : ' checker')} style={!original && color ? { background: color } : undefined}>
-                      {(original ? item.originalUrl : item.url) && <img src={original ? item.originalUrl : item.url} alt={original ? '原图' : '抠图结果'} decoding="async" />}
+                      {(original ? item.originalUrl : item.previewUrl) && <img src={original ? item.originalUrl : item.previewUrl} alt={original ? '原图' : '抠图结果'} decoding="async" />}
                       {item.status === 'working' && <i className="cutout-scan" />}
                     </div>
                     <div className="cutout-foot">
                       <div className="row-text">
                         <strong title={item.name}>{item.fileName || item.name}</strong>
-                        {item.status === 'error' ? <span className="row-error">{item.error}</span>
+                        {item.status === 'error' ? <span className="row-error" title={item.detail}>{item.error}{item.detail && <small> · {item.detail}</small>}</span>
                           : item.status === 'working' ? <span>{model ? '等模型下载完' : '抠图中…'}</span>
                           : <span>{item.width} × {item.height} · {formatSize(item.blob!.size)}</span>}
                       </div>
