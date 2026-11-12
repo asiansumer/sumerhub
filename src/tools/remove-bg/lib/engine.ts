@@ -1,4 +1,4 @@
-import { env, pipeline, type RawImage } from '@huggingface/transformers';
+import { env, pipeline, RawImage } from '@huggingface/transformers';
 import type { Model } from '../types';
 
 /**
@@ -38,7 +38,7 @@ env.fetch = async (input: string | URL, init?: RequestInit) => {
 };
 
 export type Device = 'webgpu' | 'wasm';
-type Remover = ((image: Blob) => Promise<RawImage | RawImage[]>) & { dispose?: () => Promise<unknown> };
+type Remover = ((image: RawImage) => Promise<RawImage | RawImage[]>) & { dispose?: () => Promise<unknown> };
 type Loaded = { model: Model; device: Device; ready: Promise<Remover> };
 /** 同一时间只留一个模型在内存里，换模型时先把旧的放掉。 */
 let loaded: Loaded | null = null;
@@ -63,8 +63,12 @@ function create(model: Model, device: Device, onModel: Progress): Loaded {
 }
 const release = (entry: Loaded) => entry.ready.then(remover => remover.dispose?.()).then(() => {}, () => {});
 
-/** 去掉背景，返回带透明通道的 PNG，以及这次是用显卡还是 CPU 算的。 */
-export async function removeBackground(image: Blob, model: Model, onModel: Progress) {
+/** 交给模型的图最长边不超过这么多像素。模型内部只按 512 或 1024 算，再大也没有用，只是白占内存。 */
+const WORK_SIDE = 2048;
+/** 页面上卡片里显示的小图最长边。 */
+const PREVIEW_SIDE = 720;
+
+async function run(image: RawImage, model: Model, onModel: Progress): Promise<RawImage> {
   if (loaded && loaded.model !== model) { const previous = loaded; loaded = null; await release(previous); }
   loaded ??= create(model, await pickDevice(), onModel);
   let result: RawImage | RawImage[];
@@ -80,6 +84,50 @@ export async function removeBackground(image: Blob, model: Model, onModel: Progr
     try { result = await (await loaded.ready)(image); }
     catch (again) { const broken = loaded; loaded = null; if (broken) await release(broken); throw again; }
   }
-  const cutout = Array.isArray(result) ? result[0] : result;
-  return { cutout: await cutout.toBlob('image/png') as Blob, width: cutout.width, height: cutout.height, device: loaded.device };
+  return Array.isArray(result) ? result[0] : result;
+}
+
+const context = (canvas: OffscreenCanvas) => {
+  const made = canvas.getContext('2d');
+  if (!made) throw new Error('浏览器不支持处理这张图片');
+  made.imageSmoothingQuality = 'high';
+  return made;
+};
+
+/**
+ * 去掉背景，返回带透明通道的 PNG（原图尺寸）、一张卡片上用的小图，以及这次是用显卡还是 CPU 算的。
+ *
+ * 手机拍的照片有两千万到五千万像素，整张交给 Transformers.js 的话，它会在内存里留好几份完整的像素。
+ * 所以这里只把缩小后的图交给模型，拿到遮罩后再用画布贴回原图：原图全程只有浏览器解码的那一份和输出的那一份。
+ */
+export async function removeBackground(image: Blob, model: Model, onModel: Progress) {
+  const bitmap = await createImageBitmap(image, { imageOrientation: 'from-image' });
+  try {
+    const { width, height } = bitmap;
+    const scale = Math.min(1, WORK_SIDE / Math.max(width, height));
+    const w = Math.max(1, Math.round(width * scale)), h = Math.max(1, Math.round(height * scale));
+    const work = new OffscreenCanvas(w, h), small = context(work);
+    small.drawImage(bitmap, 0, 0, w, h);
+    const cut = await run(new RawImage(small.getImageData(0, 0, w, h).data, w, h, 4), model, onModel);
+    if (cut.width !== w || cut.height !== h || cut.channels !== 4) throw new Error('抠图结果的尺寸不对');
+    // 模型给回来的是同样大小、带透明度的图。原图不比它大时，它就是结果；否则把它当遮罩贴到原图上。
+    small.putImageData(new ImageData(new Uint8ClampedArray(cut.data), w, h), 0, 0);
+    let full = work;
+    if (scale < 1) {
+      full = new OffscreenCanvas(width, height);
+      const large = context(full);
+      large.drawImage(bitmap, 0, 0);
+      large.globalCompositeOperation = 'destination-in';
+      large.drawImage(work, 0, 0, width, height);
+    }
+    const cutout = await full.convertToBlob({ type: 'image/png' });
+    const shrink = Math.min(1, PREVIEW_SIDE / Math.max(width, height));
+    let preview = cutout;
+    if (shrink < 1) {
+      const thumb = new OffscreenCanvas(Math.max(1, Math.round(width * shrink)), Math.max(1, Math.round(height * shrink)));
+      context(thumb).drawImage(full, 0, 0, thumb.width, thumb.height);
+      preview = await thumb.convertToBlob({ type: 'image/png' });
+    }
+    return { cutout, preview, width, height, device: loaded!.device };
+  } finally { bitmap.close(); }
 }

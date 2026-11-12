@@ -25,5 +25,7 @@ export type CutResponse =
   /** 模型下载进度（字节）。只在第一次用时出现。 */
   | { kind: 'model'; loaded: number; total: number }
   /** device：这张是用显卡（webgpu）还是 CPU（wasm）算的。 */
-  | { kind: 'done'; id: string; cutout: Blob; width: number; height: number; device: 'webgpu' | 'wasm' }
-  | { kind: 'error'; id: string; error: string };
+  /** preview：卡片上显示用的小图，免得页面为了显示去解码几千万像素的原图。 */
+  | { kind: 'done'; id: string; cutout: Blob; preview: Blob; width: number; height: number; device: 'webgpu' | 'wasm' }
+  /** detail：浏览器报的原话，排查问题时用。 */
+  | { kind: 'error'; id: string; error: string; detail?: string };

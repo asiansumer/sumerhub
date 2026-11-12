@@ -155,6 +155,8 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .cutout-scan { position: absolute; inset: 0 auto 0 0; width: 34%; background: linear-gradient(90deg, transparent, #ffffff1f, transparent); animation: scan 1.4s ease-in-out infinite; }
 @keyframes scan { from { transform: translateX(-110%); } to { transform: translateX(310%); } }
 .cutout-foot { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 12px; border-top: 1px solid var(--line); background: var(--surface); }
+.cutout-foot .row-error { white-space: normal; overflow-wrap: anywhere; }
+.cutout-foot .row-error small { font-size: 11px; color: var(--muted); }
 .cutout-peek { flex: none; height: 26px; padding: 0 9px; border-radius: 7px; font-size: 12px; color: var(--muted); transition: color .15s, background .15s; }
 .cutout-peek:hover { color: var(--fg); }
 .cutout-peek[aria-pressed="true"] { background: var(--raised); color: var(--fg); box-shadow: 0 0 0 1px var(--line-strong); }

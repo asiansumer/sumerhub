@@ -18,3 +18,25 @@ export async function compose(cutout: Blob, settings: Settings): Promise<Blob> {
     return blob;
   } finally { bitmap.close(); }
 }
+
+/**
+ * 卡片上显示用的小图（最长边 720）。页面只显示小图，不让浏览器为了显示去解码几千万像素的原图。
+ * 浏览器解不了这张图时会抛错：Safari 自己能解 HEIC，Chrome 和 Firefox 不能。
+ */
+export async function thumbnail(image: Blob, side = 720): Promise<Blob> {
+  const bitmap = await createImageBitmap(image, { imageOrientation: 'from-image' });
+  try {
+    const scale = Math.min(1, side / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale)); canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('浏览器不支持处理这张图片');
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    // 原图可能本来就带透明（PNG、WebP），所以存成 PNG。
+    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+    canvas.width = canvas.height = 0;
+    if (!blob) throw new Error('浏览器不支持处理这张图片');
+    return blob;
+  } finally { bitmap.close(); }
+}
