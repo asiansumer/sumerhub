@@ -11,6 +11,7 @@ Sumer 的个人工具箱：常用的网页小工具放在一起，打开即用�
 | 抠图 | `/tools/remove-bg` | 去掉照片背景，导出透明 PNG 或换成纯色背景。模型是 [BiRefNet](https://github.com/ZhengPeng7/BiRefNet) 的轻量版，另有一个抠镂空细节的备用模型 |
 | 音频分析 | `/tools/audio-analyze` | BPM、调性、Camelot 编号、响度（LUFS）、波形和试听。灵感来自 [Tunebat](https://tunebat.com/Analyzer) |
 | 音频转换 | `/tools/audio-convert` | MP3、WAV、FLAC、M4A、OGG 互转，也能从 MP4、MOV 等视频里取出声音；已经是目标格式时原样取出不重新编码。核心来自 [Mediabunny](https://github.com/Vanilagy/mediabunny) |
+| 小工具 | `/tools/pocket` | 节拍器（调度移植自 [cwilso/metronome](https://github.com/cwilso/metronome)）、调音器（[pitchy](https://github.com/ianprime0509/pitchy)）、二维码生成和识别（[qr-code-styling](https://github.com/kozakdenys/qr-code-styling)、[zxing-wasm](https://github.com/Sec-ant/zxing-wasm)）放在一个工具里，用标签切换，`#tuner`、`#qr` 可以直接打开对应的那个 |
 | PDF 合并拆分 | `/tools/pdf-pages` | 合并多个 PDF 和图片，拖动排序、旋转、删除页面，导出成一个文件或每页一个文件。核心来自 [pdf-lib](https://github.com/Hopding/pdf-lib) |
 
 ## 开发
@@ -61,6 +62,7 @@ src/
     remove-bg/             抠图（tool.tsx、remove.worker.ts、lib/engine.ts 调用 Transformers.js、lib/compose.ts 铺背景色）
     audio-analyze/         音频分析（tool.tsx、analyze.worker.ts、lib/ 里接入 BPM、调性、响度）
     audio-convert/         音频转换（tool.tsx、convert.worker.ts、lib/convert.ts 调用 Mediabunny）
+    pocket/                小工具（tool.tsx 切换标签；metronome.tsx、tuner.tsx、qr.tsx；lib/metronome.ts 是节拍调度）
     pdf-pages/             PDF 合并拆分（tool.tsx、pdf.worker.ts、lib/pdf.ts 调用 pdf-lib、lib/render.ts 调用 PDF.js）
 scripts/keynet/            生成调性模型文件的脚本
 scripts/fetch-assets.mjs   构建前取来抠图的模型和 ONNX Runtime 的 wasm（放进 public/，不进 git）
@@ -106,3 +108,5 @@ PDF 合并拆分使用 [`pdf-lib`](https://github.com/Hopding/pdf-lib)（MIT）�
 首页只有 Sumerhub 字样和工具卡片。一个工具时是横向大卡片，两个时两列，三个以上三列；工具满 6 个后出现搜索框，并按分类分组。转换类工具的预览图可以直接用 `<ConvertPreview from=".heic" to=".jpg" />`。
 
 新工具沿用 `globals.css` 里的变量和 `.panel`、`.button`、`.link`，不要自带颜色。来自别的开源项目的工具，在 `registry.ts` 里填 `source`，工具页底部会标注出处。
+
+小工具的节拍器调度方式移植自 [cwilso/metronome](https://github.com/cwilso/metronome)（MIT），调音器使用 [`pitchy`](https://github.com/ianprime0509/pitchy)（MIT），二维码生成使用 [`qr-code-styling`](https://github.com/kozakdenys/qr-code-styling)（MIT），识别使用 [`zxing-wasm`](https://github.com/Sec-ant/zxing-wasm)（MIT，内含 Apache-2.0 的 ZXing-C++；wasm 在构建时从 node_modules 复制到 `public/vendor/zxing/`）。

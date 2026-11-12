@@ -79,3 +79,9 @@ for (const name of ['ort-wasm-simd-threaded.asyncify.mjs', 'ort-wasm-simd-thread
   fs.copyFileSync(path.join(ort, name), path.join(vendor, name));
 }
 console.log('已就位 public/vendor/ort');
+
+// 二维码识别（zxing-wasm）的 wasm：从 node_modules 复制，版本和 JS 一致。
+const zxing = path.join(root, 'public/vendor/zxing');
+fs.mkdirSync(zxing, { recursive: true });
+fs.copyFileSync(path.join(root, 'node_modules/zxing-wasm/dist/reader/zxing_reader.wasm'), path.join(zxing, 'zxing_reader.wasm'));
+console.log('已就位 public/vendor/zxing');

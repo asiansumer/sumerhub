@@ -14,5 +14,6 @@ export const loaders: Record<string, ComponentType> = {
   'audio-convert': dynamic(() => import('./audio-convert/tool'), { ssr: false, loading: ToolLoading }),
   'pdf-pages': dynamic(() => import('./pdf-pages/tool'), { ssr: false, loading: ToolLoading }),
   'image-compress': dynamic(() => import('./image-compress/tool'), { ssr: false, loading: ToolLoading }),
+  'pocket': dynamic(() => import('./pocket/tool'), { ssr: false, loading: ToolLoading }),
   'remove-bg': dynamic(() => import('./remove-bg/tool'), { ssr: false, loading: ToolLoading }),
 };

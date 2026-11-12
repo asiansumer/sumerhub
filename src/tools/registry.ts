@@ -79,6 +79,14 @@ export const tools: Tool[] = [
     source: { name: 'Hopding/pdf-lib', url: 'https://github.com/Hopding/pdf-lib' },
     keywords: ['pdf', 'merge', 'split', 'rotate', 'pdf-lib', '合并', '拆分', '旋转', '删除页面', '排序', '提取', '图片转 pdf', '文档'],
   },
+  {
+    slug: 'pocket',
+    name: '小工具',
+    tagline: '节拍器、调音器和二维码，几个随手要用的小东西放在一起。',
+    category: '小工具',
+    added: '2026.11',
+    keywords: ['metronome', 'tuner', 'pitch', 'qr', 'qrcode', 'wifi', 'bpm', 'tap', '节拍器', '节拍', '敲击', '调音器', '调音', '音准', '音高', '唱歌', '二维码', '条形码', '扫码', '识别', '生成'],
+  },
 ];
 
 export function getTool(slug: string) {
