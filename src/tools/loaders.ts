@@ -11,5 +11,6 @@ import ToolLoading from '@/components/tool-loading';
 export const loaders: Record<string, ComponentType> = {
   'ncm-to-mp3': dynamic(() => import('./ncm-to-mp3/tool'), { ssr: false, loading: ToolLoading }),
   'audio-analyze': dynamic(() => import('./audio-analyze/tool'), { ssr: false, loading: ToolLoading }),
+  'pdf-pages': dynamic(() => import('./pdf-pages/tool'), { ssr: false, loading: ToolLoading }),
   'image-compress': dynamic(() => import('./image-compress/tool'), { ssr: false, loading: ToolLoading }),
 };

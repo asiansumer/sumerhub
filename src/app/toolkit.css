@@ -4,7 +4,7 @@
 /* 拖放区 */
 .drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 320px; padding: 32px 20px; text-align: center; cursor: pointer;
   background-color: var(--sunken); background-image: radial-gradient(var(--dots) 1px, transparent 1px); background-size: 16px 16px; background-position: 8px 8px; transition: background-color .15s; }
-.drop .convert-preview, .drop .analyze-preview { margin-bottom: 26px; }
+.drop .convert-preview, .drop .analyze-preview, .drop .pdf-preview { margin-bottom: 26px; }
 .drop-title { font-family: var(--serif); font-size: 17px; font-weight: 500; }
 .drop-hint { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
 .drop.dragging { background-color: var(--raised); box-shadow: inset 0 0 0 1px var(--muted); }
@@ -108,9 +108,44 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .card.active .analyze-preview .readout, .drop:hover .analyze-preview .readout { transform: translateY(-2px); }
 .card.active .analyze-preview .readout + .readout, .drop:hover .analyze-preview .readout + .readout { transform: translateY(2px); }
 
+/* PDF 合并拆分 */
+.controls-end { margin-left: auto; }
+.button:disabled { opacity: .6; cursor: default; }
+.result-row { padding: 8px; border-bottom: 1px solid var(--line); max-height: none; }
+.leaves { list-style: none; margin: 0; padding: 4px 14px 18px; display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 6px; max-height: 660px; overflow-y: auto; }
+.leaf { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 10px 8px 4px; border-radius: 10px; border: 1px solid transparent; cursor: grab; touch-action: manipulation; user-select: none; -webkit-user-select: none; outline-offset: -1px; transition: background .15s, border-color .15s; }
+.leaf:hover { background: var(--raised); }
+.leaf.selected { background: var(--raised); border-color: var(--faint); }
+.leaf.dragging { z-index: 2; cursor: grabbing; background: var(--raised); border-color: var(--line-strong); box-shadow: 0 12px 30px -12px #000; }
+.leaf-sheet { position: relative; aspect-ratio: 1; }
+.leaf-sheet img { position: absolute; inset: 0; margin: auto; display: block; max-width: 100%; max-height: 100%; border-radius: 2px; background: #fff; box-shadow: 0 0 0 1px #ffffff14, 0 8px 18px -10px #000; transition: transform .25s cubic-bezier(.3, .7, .2, 1); pointer-events: none; }
+.leaf-blank { position: absolute; inset: 0; margin: auto; width: 70%; aspect-ratio: 210 / 297; border-radius: 2px; background: var(--line); }
+.leaf-check { position: absolute; top: 0; left: 0; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; background: var(--fg); color: var(--bg); }
+.leaf-foot { display: flex; align-items: center; justify-content: space-between; padding-left: 4px; font: 12px var(--mono); color: var(--faint); }
+.leaf-foot > span:last-child { display: flex; }
+.leaf-foot .icon { width: 26px; height: 26px; border-radius: 7px; }
+.leaf.selected .leaf-foot > span:first-child { color: var(--fg); }
+
+/* PDF 工具的预览图 */
+.pdf-preview { display: flex; align-items: center; height: 78px; padding: 0 8px; }
+.pdf-preview .sheet { display: flex; flex-direction: column; gap: 5px; width: 52px; height: 68px; padding: 10px 9px 0; border: 1px solid var(--line-strong); border-radius: 7px; background: var(--surface); box-shadow: var(--highlight), 0 8px 20px -10px #000; transition: transform .35s cubic-bezier(.3, .7, .2, 1); position: relative; }
+.pdf-preview .sheet + .sheet { margin-left: -14px; }
+.pdf-preview .sheet:nth-child(1) { transform: rotate(-7deg) translateY(2px); }
+.pdf-preview .sheet:nth-child(2) { z-index: 1; background: var(--raised); border-color: var(--muted); transform: translateY(-3px); }
+.pdf-preview .sheet:nth-child(3) { transform: rotate(7deg) translateY(2px); }
+.pdf-preview .sheet u { height: 2px; border-radius: 2px; background: var(--line-strong); text-decoration: none; }
+.pdf-preview .sheet u:nth-child(2) { width: 70%; }
+.pdf-preview .sheet:nth-child(2) u { background: var(--faint); }
+.pdf-preview .sheet b { position: absolute; right: 7px; bottom: 5px; font: 500 10px var(--mono); color: var(--faint); }
+.pdf-preview .sheet:nth-child(2) b { color: var(--fg); }
+.card.active .pdf-preview .sheet:nth-child(1), .drop:hover .pdf-preview .sheet:nth-child(1) { transform: rotate(-11deg) translate(-5px, 2px); }
+.card.active .pdf-preview .sheet:nth-child(3), .drop:hover .pdf-preview .sheet:nth-child(3) { transform: rotate(11deg) translate(5px, 2px); }
+
 @media (max-width: 640px) {
   .stats { grid-template-columns: repeat(2, 1fr); }
   .stats > div:nth-child(3) { border-left: 0; }
   .stats > div:nth-child(n+3) { border-top: 1px solid var(--line); }
   .stats dd { font-size: 22px; }
+  .leaves { grid-template-columns: repeat(auto-fill, minmax(98px, 1fr)); padding: 4px 8px 14px; gap: 2px; }
+  .controls-end { margin-left: 0; width: 100%; }
 }

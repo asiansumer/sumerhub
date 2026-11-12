@@ -52,6 +52,15 @@ export const tools: Tool[] = [
     source: { name: 'Tunebat', url: 'https://tunebat.com/Analyzer', inspired: true },
     keywords: ['bpm', 'key', 'tempo', 'camelot', 'lufs', 'tunebat', 'dj', 'autotune', '速度', '节拍', '调性', '音阶', '伴奏', '修音', '响度', '音乐', '分析'],
   },
+  {
+    slug: 'pdf-pages',
+    name: 'PDF 合并拆分',
+    tagline: '合并、拆分 PDF，调整页面顺序，旋转或删掉某几页。',
+    category: '文档',
+    added: '2026.11',
+    source: { name: 'Hopding/pdf-lib', url: 'https://github.com/Hopding/pdf-lib' },
+    keywords: ['pdf', 'merge', 'split', 'rotate', 'pdf-lib', '合并', '拆分', '旋转', '删除页面', '排序', '提取', '图片转 pdf', '文档'],
+  },
 ];
 
 export function getTool(slug: string) {
