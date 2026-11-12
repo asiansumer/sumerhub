@@ -130,5 +130,7 @@ kbd { font: 11px var(--mono); color: var(--faint); border: 1px solid var(--line)
 .convert-preview .picture { position: relative; width: 26px; height: 20px; margin-bottom: 2px; border: 1.5px solid var(--faint); border-radius: 4px; overflow: hidden; }
 .convert-preview .picture::before { content: ""; position: absolute; left: 3px; top: 3px; width: 4px; height: 4px; border-radius: 50%; background: var(--faint); }
 .convert-preview .picture::after { content: ""; position: absolute; left: 5px; bottom: -9px; width: 14px; height: 14px; background: var(--faint); transform: rotate(45deg); border-radius: 2px; }
+.convert-preview .clip { position: relative; width: 26px; height: 20px; margin-bottom: 2px; border: 1.5px solid var(--faint); border-radius: 4px; }
+.convert-preview .clip::before { content: ""; position: absolute; left: 8.5px; top: 4.5px; border: 4px solid transparent; border-left: 7px solid var(--faint); border-right: 0; }
 .convert-preview .file.out .picture { border-color: var(--fg); transform: scale(.72); }
 .convert-preview .file.out .picture::before, .convert-preview .file.out .picture::after { background: var(--fg); }
