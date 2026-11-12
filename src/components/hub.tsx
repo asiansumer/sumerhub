@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { tools } from '@/tools/registry';
+import { previews } from '@/tools/previews';
 import SiteHeader from './site-header';
 
 const normalize = (value: string) => value.toLowerCase().replace(/\s+/g, '');
@@ -35,30 +36,45 @@ export default function Hub() {
     return () => window.removeEventListener('keydown', onKey);
   }, [visible, active, router]);
 
+  // 工具数是奇数时，第一张卡片横跨整行。
+  const wideFirst = !query && visible.length % 2 === 1;
+
   return (
     <div className="page">
       <SiteHeader />
       <main>
-        {tools.length >= SEARCH_FROM && (
-          <label className="search">
-            <input ref={search} value={query} onChange={event => { setQuery(event.target.value); setActive(0); }} placeholder="搜索" aria-label="搜索工具" />
-            <kbd>/</kbd>
-          </label>
-        )}
-        <ul className="tool-list">
-          {visible.map((tool, index) => (
-            <li key={tool.slug}>
-              <Link href={`/tools/${tool.slug}`} className={index === active ? 'tool-row active' : 'tool-row'} onMouseEnter={() => setActive(index)} onMouseLeave={() => setActive(-1)}>
-                <span className="row-name">{tool.name}</span>
-                <span className="row-desc">{tool.tagline}</span>
-                <span className="row-meta">{tool.category}</span>
+        <section className="intro">
+          <h1>Sumer 的工具箱</h1>
+          <p>常用的小工具放在一起。打开就能用，文件不离开浏览器。</p>
+        </section>
+        <div className="list-head">
+          <span>工具</span>
+          {tools.length >= SEARCH_FROM ? (
+            <label className="search">
+              <input ref={search} value={query} onChange={event => { setQuery(event.target.value); setActive(0); }} placeholder="搜索" aria-label="搜索工具" />
+              <kbd>/</kbd>
+            </label>
+          ) : <span className="count">{String(tools.length).padStart(2, '0')}</span>}
+        </div>
+        <div className="cards">
+          {visible.map((tool, index) => {
+            const Preview = previews[tool.slug];
+            return (
+              <Link key={tool.slug} href={`/tools/${tool.slug}`} className={'card' + (wideFirst && index === 0 ? ' wide' : '') + (index === active ? ' active' : '')}
+                onMouseEnter={() => setActive(index)} onMouseLeave={() => setActive(-1)}>
+                <div className="card-preview">{Preview ? <Preview /> : <span className="initial">{tool.name.slice(0, 1)}</span>}</div>
+                <div className="card-body">
+                  <h2>{tool.name}<span className="card-arrow" aria-hidden="true">↗</span></h2>
+                  <p>{tool.tagline}</p>
+                  <div className="card-meta"><span>{tool.category}</span><span>{tool.added}</span></div>
+                </div>
               </Link>
-            </li>
-          ))}
-        </ul>
+            );
+          })}
+        </div>
         {!visible.length && <p className="empty">没有找到「{query}」。</p>}
       </main>
-      <footer className="site-footer">所有工具都在浏览器本地运行，文件不会上传。</footer>
+      <footer className="site-footer"><span><i className="dot" />所有工具都在浏览器本地运行</span><span>sumerhub</span></footer>
     </div>
   );
 }

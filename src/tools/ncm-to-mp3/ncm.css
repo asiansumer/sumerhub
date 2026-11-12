@@ -1,34 +1,48 @@
-.ncm { display: flex; flex-direction: column; gap: 20px; }
+.ncm { display: flex; flex-direction: column; }
 
-.drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 200px; border: 1px dashed var(--faint); border-radius: 10px; cursor: pointer; transition: border-color .15s, background .15s; }
-.drop:hover, .drop.dragging { border-color: var(--fg); background: var(--hover); }
-.drop u { text-underline-offset: 3px; text-decoration-color: var(--faint); margin-left: 2px; }
-.drop-hint { font-size: 13px; color: var(--faint); }
-.drop.compact { height: 48px; color: var(--muted); font-size: 14px; }
-.drop.compact:hover { color: var(--fg); }
+.drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 320px; padding: 32px 20px; text-align: center; cursor: pointer;
+  background-color: var(--sunken); background-image: radial-gradient(var(--dots) 1px, transparent 1px); background-size: 14px 14px; background-position: 7px 7px; transition: background-color .15s; }
+.drop .ncm-preview { margin-bottom: 24px; }
+.drop-title { font-weight: 700; }
+.drop-hint { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+.drop.dragging { background-color: var(--surface); box-shadow: inset 0 0 0 2px var(--fg); }
+.drop.compact { flex-direction: row; justify-content: space-between; min-height: 0; padding: 14px 16px 14px 20px; border-bottom: 1px solid var(--line); }
+.drop.compact .drop-title { font-weight: 400; color: var(--muted); }
 
-.bar { height: 2px; background: var(--line); }
-.bar span { display: block; height: 100%; background: var(--fg); transition: width .2s; }
-.progress-label { display: flex; justify-content: space-between; margin-top: 8px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
-
-.errors p, .message { margin: 0; font-size: 13px; color: var(--muted); }
-.errors p { color: var(--danger); }
+.progress, .errors, .message { margin: 0; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+.progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar { height: 3px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar span { display: block; height: 100%; border-radius: 3px; background: var(--accent); transition: width .2s; }
+.errors p, .message { font-size: 13px; color: var(--muted); }
+.errors p { margin: 0; color: var(--danger); }
 .errors p + p { margin-top: 4px; }
-.errors span { color: var(--fg); margin-right: 8px; }
+.errors span { color: var(--fg); margin-right: 10px; }
 
-.results-head { display: flex; align-items: center; justify-content: space-between; height: 32px; margin-bottom: 8px; font-size: 13px; color: var(--muted); }
+.results-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 12px 20px; font-size: 13px; color: var(--muted); }
 .results-head div { display: flex; align-items: center; gap: 16px; }
-.tracks { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-.track { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
-.cover { width: 36px; height: 36px; flex: none; border-radius: 4px; overflow: hidden; background: var(--hover); }
+.tracks { list-style: none; margin: 0; padding: 0 8px 8px; max-height: 480px; overflow-y: auto; }
+.track { display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 12px; border-radius: 10px; transition: background .15s; }
+.track:hover, .track.playing { background: var(--sunken); }
+.cover { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 6px; overflow: hidden; background: var(--sunken); border: 1px solid var(--line); color: var(--faint); }
 .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.track-text { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.4; }
-.track-text strong { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.track-text span { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.icon { width: 32px; height: 32px; flex: none; display: grid; place-items: center; border-radius: 6px; color: var(--muted); transition: color .15s, background .15s; }
-.icon:hover, .track.playing .icon:first-of-type { color: var(--fg); background: var(--hover); }
-.track .icon + .icon { margin-left: -8px; }
+.track-text { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.5; }
+.track-text strong { font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track-text span { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track-size { font: 12px var(--mono); color: var(--faint); margin-right: 4px; white-space: nowrap; }
+.icon { width: 32px; height: 32px; flex: none; display: grid; place-items: center; border-radius: 8px; color: var(--muted); transition: color .15s, background .15s; }
+.icon:hover { color: var(--fg); background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.track.playing .icon:first-of-type { color: var(--accent); }
+.track .icon + .icon { margin-left: -6px; }
 
-.fine { margin: 28px 0 0; font-size: 13px; line-height: 1.8; color: var(--faint); }
-.fine a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line); transition: color .15s; }
+.notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin: 36px 0 0; }
+.notes dt { margin-bottom: 4px; font-size: 13px; }
+.notes dd { margin: 0; font-size: 13px; line-height: 1.8; color: var(--muted); }
+.fine { margin: 32px 0 0; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12px; color: var(--faint); }
+.fine a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-strong); transition: color .15s; }
 .fine a:hover { color: var(--fg); }
+
+@media (max-width: 640px) {
+  .drop { min-height: 280px; }
+  .notes { grid-template-columns: 1fr; gap: 16px; }
+  .track-size { display: none; }
+}
