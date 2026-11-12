@@ -9,6 +9,7 @@ Sumer 的个人工具箱：常用的网页小工具放在一起，打开即用�
 | NCM 转 MP3 | `/tools/ncm-to-mp3` | 来自 [NCM-Swift](https://github.com/asiansumer/NCM-Swift)，去掉了 3D 动画和 three.js，转换逻辑不变 |
 | 图片压缩 | `/tools/image-compress` | 压缩 JPG、PNG、WebP、HEIC，可转格式、限制最长边。编码器来自 [Squoosh](https://github.com/GoogleChromeLabs/squoosh) |
 | 音频分析 | `/tools/audio-analyze` | BPM、调性、Camelot 编号、响度（LUFS）、波形和试听。灵感来自 [Tunebat](https://tunebat.com/Analyzer) |
+| PDF 合并拆分 | `/tools/pdf-pages` | 合并多个 PDF 和图片，拖动排序、旋转、删除页面，导出成一个文件或每页一个文件。核心来自 [pdf-lib](https://github.com/Hopding/pdf-lib) |
 
 ## 开发
 
@@ -55,9 +56,11 @@ src/
     ncm-to-mp3/            NCM 转 MP3（tool.tsx、lib/、worker/）
     image-compress/        图片压缩（tool.tsx、compress.worker.ts）
     audio-analyze/         音频分析（tool.tsx、analyze.worker.ts、lib/ 里接入 BPM、调性、响度）
+    pdf-pages/             PDF 合并拆分（tool.tsx、pdf.worker.ts、lib/pdf.ts 调用 pdf-lib、lib/render.ts 调用 PDF.js）
 scripts/keynet/            生成调性模型文件的脚本
 tests/                     回归测试和测试素材
 public/models/keynet/      调性模型（ONNX）
+public/vendor/pdfjs/       PDF.js 画缩略图要用的字符映射表和标准字体
 public/licenses/           第三方许可证全文
 ```
 
@@ -68,6 +71,8 @@ NCM 转 MP3 使用 [`@breezystack/lamejs`](https://github.com/shijinyu/lamejs)�
 图片压缩使用 [`@jsquash/jpeg`、`@jsquash/webp`](https://github.com/jamsinclair/jSquash)（Apache-2.0，Squoosh 的 MozJPEG 和 libwebp 编码器）、[`upng-js`](https://github.com/photopea/UPNG.js)（MIT，内含 pako）和 [`heic2any`](https://github.com/alexcorvi/heic2any)（MIT，内含 LGPL-3.0 的 libheif）。
 
 音频分析的 BPM 使用 [`realtime-bpm-analyzer`](https://github.com/dlepaux/realtime-bpm-analyzer)（Apache-2.0）的 tempogram 检测器，响度和真峰值使用 [`ebur128-wasm`](https://github.com/streamonkey/ebur128_wasm)（Apache-2.0，Rust 的 ebur128 库编译成 WebAssembly），标签读取同样使用 `taglib-wasm`。调性使用 [MusicalKeyCNN](https://github.com/a1ex90/MusicalKeyCNN)（MIT）训练好的卷积网络，用 [ONNX Runtime Web](https://github.com/microsoft/onnxruntime)（MIT）在浏览器里运行。模型文件 `public/models/keynet/keynet.onnx` 由 `scripts/keynet/export_onnx.py` 生成：把原仓库的权重和 [nnAudio](https://github.com/KinWaiCheuk/nnAudio)（MIT）的 CQT 频谱打包成一个 ONNX 文件，输入 44.1 kHz 单声道音频，输出 24 个调的概率。在 380 首有标注的歌上（GiantSteps key + GTZAN key），调完全正确 66%，音阶正确（含关系大小调）71%，前三个候选里有正确音阶 90%；同一批电子乐上 Mixed In Key 是 65%、rekordbox 是 62%。
+
+PDF 合并拆分使用 [`pdf-lib`](https://github.com/Hopding/pdf-lib)（MIT）合并、拆分、旋转页面和把图片放进 PDF，使用 [`pdfjs-dist`](https://github.com/mozilla/pdf.js)（Apache-2.0，PDF.js）读页数和画缩略图，使用 [`@dnd-kit`](https://github.com/clauderic/dnd-kit)（MIT）做拖动排序。`public/vendor/pdfjs/` 里的字符映射表和标准字体来自 `pdfjs-dist`，各自的许可证在同一个目录里。
 
 许可证全文在 `public/licenses/`。
 
