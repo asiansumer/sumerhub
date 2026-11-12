@@ -46,3 +46,8 @@ pnpm-debug.log*
 # Local deployment link and compiler cache
 .vercel/
 *.tsbuildinfo
+
+# 抠图的模型和 ONNX Runtime 的 wasm：构建时由 scripts/fetch-assets.mjs 取来
+/public/models/remove-bg/
+/public/models/remove-bg-fine/
+/public/vendor/ort/
