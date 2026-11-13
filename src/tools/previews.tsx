@@ -3,6 +3,7 @@ import AudioAnalyzePreview from './audio-analyze/preview';
 import AudioConvertPreview from './audio-convert/preview';
 import ImageCompressPreview from './image-compress/preview';
 import NcmPreview from './ncm-to-mp3/preview';
+import MetronomeTunerPreview from './metronome-tuner/preview';
 import PdfPagesPreview from './pdf-pages/preview';
 import RemoveBgPreview from './remove-bg/preview';
 
@@ -14,4 +15,5 @@ export const previews: Record<string, ComponentType> = {
   'audio-analyze': AudioAnalyzePreview,
   'audio-convert': AudioConvertPreview,
   'pdf-pages': PdfPagesPreview,
+  'metronome-tuner': MetronomeTunerPreview,
 };

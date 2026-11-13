@@ -79,3 +79,4 @@ for (const name of ['ort-wasm-simd-threaded.asyncify.mjs', 'ort-wasm-simd-thread
   fs.copyFileSync(path.join(ort, name), path.join(vendor, name));
 }
 console.log('已就位 public/vendor/ort');
+

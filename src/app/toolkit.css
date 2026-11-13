@@ -174,3 +174,81 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
   .cutout-foot .row-text { flex: 1 1 100%; }
   .cutout-foot .icon { margin-left: auto; }
 }
+
+/* 节拍器和调音器 */
+.pocket-tabs { display: flex; gap: 4px; padding: 10px 12px 0; border-bottom: 1px solid var(--line); }
+.pocket-tabs button { position: relative; height: 38px; padding: 0 12px; font-family: var(--serif); font-size: 15px; font-weight: 500; color: var(--faint); transition: color .15s; }
+.pocket-tabs button:hover { color: var(--muted); }
+.pocket-tabs button[aria-selected="true"] { color: var(--fg); }
+.pocket-tabs button[aria-selected="true"]::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 1.5px; border-radius: 2px; background: var(--fg); }
+.pocket .controls:last-child { border-bottom: 0; }
+.pocket .stage + .controls { border-top: 1px solid var(--line); border-bottom: 0; }
+.field.hint { font-size: 12px; color: var(--faint); }
+.button.big { height: 44px; min-width: 128px; padding: 0 22px; border-radius: 11px; font-size: 14px; }
+.button.small { height: 28px; padding: 0 10px; border-radius: 7px; font-size: 12px; font-weight: 400; }
+.button.pressed { transform: scale(.97); border-color: var(--muted); }
+.button.big { transition: opacity .15s, border-color .15s, transform .08s; }
+
+.stage { display: flex; flex-direction: column; align-items: center; padding: 40px 20px 32px;
+  background-color: var(--sunken); background-image: radial-gradient(var(--dots) 1px, transparent 1px); background-size: 16px 16px; background-position: 8px 8px; }
+.stage-actions { display: flex; gap: 10px; margin-top: 28px; }
+.stage-error { margin: 14px 0 0; font-size: 13px; color: var(--danger); text-align: center; }
+
+/* 节拍器 */
+.beats { display: flex; gap: 14px; height: 18px; align-items: center; margin-bottom: 26px; }
+.beats i { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--line-strong); background: var(--surface); transition: background .12s, border-color .12s, transform .12s; }
+.beats i.accent { width: 16px; height: 16px; }
+.beats i.on { background: var(--fg); border-color: var(--fg); transform: scale(1.15); transition: none; }
+.beats i.sub { border-color: var(--muted); transition: none; }
+.tempo { display: flex; align-items: center; gap: 22px; }
+.step { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line-strong); background: var(--surface); color: var(--muted); transition: color .15s, border-color .15s; }
+.step:hover:not(:disabled) { color: var(--fg); border-color: var(--faint); }
+.tempo-value { display: flex; flex-direction: column; align-items: center; }
+.tempo-value input { width: 3.1ch; padding: 0; border: 0; outline: 0; background: none; text-align: center; font-family: var(--serif); font-size: 76px; font-weight: 500; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; border-radius: 8px; }
+.tempo-value input:focus-visible { box-shadow: 0 0 0 1px var(--line-strong); }
+.tempo-value span { margin-top: 6px; font: 11px var(--mono); letter-spacing: .08em; color: var(--faint); }
+.tempo-name { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
+input[type="range"].tempo-range { width: min(360px, 100%); margin-top: 22px; }
+
+/* 调音器 */
+.tuner-note { font-family: var(--serif); font-size: 96px; font-weight: 500; line-height: 1; letter-spacing: -.02em; color: var(--faint); transition: color .2s; min-height: 96px; }
+.tuner-note.live { color: var(--fg); }
+.tuner-note.in-tune { color: var(--ok); }
+.tuner-note sub { font-size: .3em; vertical-align: baseline; margin-left: .06em; color: var(--faint); letter-spacing: 0; }
+.tuner-note .placeholder { opacity: .5; }
+.stage.resting .tuner-note { color: var(--line-strong); }
+.tuner-detail { margin: 12px 0 0; min-height: 1.6em; font: 13px var(--mono); color: var(--muted); }
+.tuner-detail span { margin: 0 8px; color: var(--faint); }
+.meter { position: relative; width: min(420px, 100%); height: 46px; margin-top: 24px; }
+.meter-scale { position: absolute; left: 0; right: 0; top: 0; display: flex; justify-content: space-between; }
+.meter-scale i { width: 1px; height: 10px; background: var(--line-strong); }
+.meter-scale i.major { height: 16px; background: var(--faint); }
+.meter-zone { position: absolute; top: 0; left: 45%; width: 10%; height: 16px; border-radius: 3px; background: color-mix(in srgb, var(--ok) 14%, transparent); }
+.meter-needle { position: absolute; top: -4px; width: 2px; height: 24px; margin-left: -1px; border-radius: 2px; background: var(--line-strong); transition: left .12s ease-out, background .2s; }
+.meter.live .meter-needle { background: var(--fg); }
+.meter.in-tune .meter-needle { background: var(--ok); }
+.meter-labels { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; font: 10px var(--mono); color: var(--faint); }
+.trail { width: min(520px, 100%); height: 150px; margin-top: 18px; --line: #242428; }
+
+/* 节拍器和调音器的预览图 */
+.pocket-preview { display: flex; align-items: center; gap: 10px; }
+.pocket-preview .tile { position: relative; width: 58px; height: 58px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); box-shadow: var(--highlight), 0 8px 20px -10px #000; transition: transform .35s cubic-bezier(.3, .7, .2, 1); }
+.pocket-preview .beat { gap: 5px; }
+.pocket-preview .beat i { width: 6px; height: 6px; border-radius: 50%; border: 1px solid var(--line-strong); }
+.pocket-preview .beat i:first-child { width: 8px; height: 8px; background: var(--fg); border-color: var(--fg); }
+.pocket-preview .gauge { background: var(--raised); border-color: var(--muted); }
+.pocket-preview .gauge i { position: absolute; left: 13px; right: 13px; top: 30px; height: 1px; background: var(--faint); }
+.pocket-preview .gauge b { position: absolute; left: 50%; top: 17px; width: 2px; height: 22px; margin-left: 2px; border-radius: 2px; background: var(--ok); transform: rotate(10deg); transform-origin: bottom; transition: transform .35s cubic-bezier(.3, .7, .2, 1); }
+.card.active .pocket-preview .beat { transform: translateY(2px) rotate(-4deg); }
+.card.active .pocket-preview .gauge { transform: translateY(-2px) rotate(3deg); }
+.card.active .card.active .pocket-preview .gauge b { transform: rotate(-2deg); }
+
+@media (max-width: 640px) {
+  .pocket-tabs { padding: 6px 6px 0; }
+  .stage { padding: 32px 14px 26px; }
+  .tempo { gap: 14px; }
+  .tempo-value input { font-size: 64px; }
+  .tuner-note { font-size: 80px; min-height: 80px; }
+  .button.big { min-width: 110px; }
+  .trail { height: 120px; }
+}

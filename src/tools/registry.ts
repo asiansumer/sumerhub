@@ -79,6 +79,15 @@ export const tools: Tool[] = [
     source: { name: 'Hopding/pdf-lib', url: 'https://github.com/Hopding/pdf-lib' },
     keywords: ['pdf', 'merge', 'split', 'rotate', 'pdf-lib', '合并', '拆分', '旋转', '删除页面', '排序', '提取', '图片转 pdf', '文档'],
   },
+  {
+    slug: 'metronome-tuner',
+    name: '节拍器和调音器',
+    tagline: '练歌、练琴时用：打拍子、敲击测速，用麦克风看音准。',
+    category: '音频',
+    added: '2026.11',
+    source: { name: 'cwilso/metronome', url: 'https://github.com/cwilso/metronome' },
+    keywords: ['metronome', 'tuner', 'pitch', 'bpm', 'tap', 'tempo', '节拍器', '节拍', '打拍子', '敲击', '测速', '调音器', '调音', '音准', '音高', '唱歌', '练歌', '练琴'],
+  },
 ];
 
 export function getTool(slug: string) {
