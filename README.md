@@ -13,6 +13,8 @@ Sumer 的个人工具箱：常用的网页小工具放在一起，打开即用�
 | 音频转换 | `/tools/audio-convert` | MP3、WAV、FLAC、M4A、OGG 互转，也能从 MP4、MOV 等视频里取出声音；已经是目标格式时原样取出不重新编码。核心来自 [Mediabunny](https://github.com/Vanilagy/mediabunny) |
 | 人声伴奏分离 | `/tools/vocal-split` | 把一首歌分成人声、伴奏、鼓、贝斯、其他乐器，导出 WAV。模型是 Demucs v4，浏览器版本来自 [timcsy/demucs-web](https://github.com/timcsy/demucs-web)；优先用 WebGPU，没有就用单线程 wasm（很慢） |
 | 节拍器和调音器 | `/tools/metronome-tuner` | 节拍器（调度移植自 [cwilso/metronome](https://github.com/cwilso/metronome)）和调音器（[pitchy](https://github.com/ianprime0509/pitchy)）放在一个工具里，用标签切换，`#tuner` 直接打开调音器 |
+| 代码小工具 | `/tools/code-tools` | 五个标签：JSON 整理（含自动修复）、代码格式化（HTML、CSS、JS、SQL）、正则测试、Markdown 预览、JWT 解码。`#format`、`#regex`、`#markdown`、`#jwt` 直接打开对应标签 |
+| 生成与转换 | `/tools/generators` | 五个标签：二维码生成和识别、随机密码 / UUID / 短 ID、哈希（MD5、SHA-1、SHA-256、SHA-512，文字或文件）、颜色换算、时间戳转换。`#random`、`#hash`、`#color`、`#time` 直接打开对应标签 |
 | PDF 合并拆分 | `/tools/pdf-pages` | 合并多个 PDF 和图片，拖动排序、旋转、删除页面，导出成一个文件或每页一个文件。核心来自 [pdf-lib](https://github.com/Hopding/pdf-lib) |
 
 ## 开发
@@ -39,6 +41,9 @@ npm run assets  # 只取抠图要用的模型和 wasm（dev 和 build 会自动�
 
 - `src/components/drop-area.tsx`：拖放区 `<DropArea>`，有结果后自动收成一条窄栏。
 - `src/app/toolkit.css`：工具页通用的样式。`.tool`、`.panel` 是外框；`.controls`、`.field`、`.segmented`、`.select` 是设置栏；`.results-head`、`.rows`、`.row`、`.thumb`、`.row-text`、`.row-meta`、`.icon` 是结果列表；`.progress`、`.errors`、`.message` 是状态；`.notes`、`.fine` 是底部说明。
+- `src/components/tabbed-tool.tsx`：几个小功能共用一个工具位时用的标签页 `<TabbedTool>`，每个标签可以带自己的底部说明。
+- `src/components/copy-button.tsx`：复制按钮 `<CopyButton>`。
+- `src/lib/stored.ts`：`useStored`，把设置记在浏览器里。
 - `src/lib/format.ts`：`formatSize`（文件大小）、`uniqueFileName`（一批里不重名）。
 - `src/lib/download.ts`：`downloadZip`（打包下载）。
 - 颜色变量在 `src/app/globals.css`：`--fg`、`--muted`、`--faint`、`--line`、`--surface`、`--sunken`、`--raised`。
@@ -65,6 +70,8 @@ src/
     audio-convert/         音频转换（tool.tsx、convert.worker.ts、lib/convert.ts 调用 Mediabunny）
     vocal-split/           人声伴奏分离（tool.tsx、split.worker.ts 调用 demucs-web，lib/model.ts 下载并缓存模型，lib/wav.ts 写 WAV）
     metronome-tuner/       节拍器和调音器（tool.tsx 切换标签；metronome.tsx、tuner.tsx；lib/metronome.ts 是节拍调度）
+    code-tools/            代码小工具（tool.tsx 列出标签；json.tsx、format.tsx、regex.tsx、markdown.tsx、jwt.tsx；highlight.tsx 给代码上色）
+    generators/            生成与转换（tool.tsx 列出标签；qr.tsx、random.tsx、hash.tsx、color.tsx、time.tsx）
     pdf-pages/             PDF 合并拆分（tool.tsx、pdf.worker.ts、lib/pdf.ts 调用 pdf-lib、lib/render.ts 调用 PDF.js）
 scripts/keynet/            生成调性模型文件的脚本
 scripts/fetch-assets.mjs   构建前取来抠图的模型和 ONNX Runtime 的 wasm（放进 public/，不进 git）
@@ -114,3 +121,7 @@ PDF 合并拆分使用 [`pdf-lib`](https://github.com/Hopding/pdf-lib)（MIT）�
 节拍器的调度方式移植自 [cwilso/metronome](https://github.com/cwilso/metronome)（MIT），调音器使用 [`pitchy`](https://github.com/ianprime0509/pitchy)（MIT）。
 
 人声伴奏分离使用 [`demucs-web`](https://github.com/timcsy/demucs-web)（MIT）：Meta 的 [Demucs v4](https://github.com/facebookresearch/demucs)（MIT）导出成 ONNX，STFT 和 iSTFT 在 JS 里做，用 ONNX Runtime Web 的 WebGPU 版运行。模型（180 MB）不在仓库和构建产物里，用的时候从 Hugging Face 的 `timcsy/demucs-web-onnx` 按固定版本下载，存进浏览器的 Cache Storage。在 MUSDB18 测试集的 50 段片段上，这个浏览器版本的中位数 SDR 是人声 8.7 dB、伴奏 13.6 dB，原版 Python Demucs 在同样的片段上是 8.9 和 13.4。
+
+代码小工具使用 [`jsonrepair`](https://github.com/josdejong/jsonrepair)（ISC）、[`js-beautify`](https://github.com/beautifier/js-beautify)（MIT）、[`sql-formatter`](https://github.com/sql-formatter-org/sql-formatter)（MIT）、[`marked`](https://github.com/markedjs/marked)（MIT）、[`DOMPurify`](https://github.com/cure53/DOMPurify)（Apache-2.0 或 MPL-2.0）、[`jwt-decode`](https://github.com/auth0/jwt-decode)（MIT）和 [`highlight.js`](https://github.com/highlightjs/highlight.js)（BSD-3-Clause）。
+
+生成与转换使用 [`qr-code-styling`](https://github.com/kozakdenys/qr-code-styling)（MIT）、[`zxing-wasm`](https://github.com/Sec-ant/zxing-wasm)（MIT，内含 Apache-2.0 的 ZXing-C++；wasm 在构建时从 node_modules 复制到 `public/vendor/zxing/`）、[`nanoid`](https://github.com/ai/nanoid)（MIT）、[`hash-wasm`](https://github.com/Daninet/hash-wasm)（MIT）、[`color`](https://github.com/Qix-/color)（MIT）和 [`dayjs`](https://github.com/iamkun/dayjs)（MIT）。

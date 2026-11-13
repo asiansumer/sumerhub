@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { median, NOTE_NAMES, readFrequency, type Reading } from './lib/notes';
-import { useStored } from './lib/stored';
+import { useStored } from '@/lib/stored';
 
 const FFT = 4096;
 const MIN_CLARITY = 0.9;
