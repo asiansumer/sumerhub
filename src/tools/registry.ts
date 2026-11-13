@@ -97,6 +97,22 @@ export const tools: Tool[] = [
     source: { name: 'cwilso/metronome', url: 'https://github.com/cwilso/metronome' },
     keywords: ['metronome', 'tuner', 'pitch', 'bpm', 'tap', 'tempo', '节拍器', '节拍', '打拍子', '敲击', '测速', '调音器', '调音', '音准', '音高', '唱歌', '练歌', '练琴'],
   },
+  {
+    slug: 'code-tools',
+    name: '代码小工具',
+    tagline: 'JSON 整理、代码格式化、正则测试、Markdown 预览、JWT 解码。',
+    category: '开发',
+    added: '2026.11',
+    keywords: ['json', 'format', 'beautify', 'minify', 'html', 'css', 'js', 'javascript', 'sql', 'regex', 'regexp', 'markdown', 'md', 'jwt', 'token', '格式化', '美化', '压缩', '修复', '正则', '表达式', '匹配', '替换', '预览', '解码', '令牌', '代码', '开发'],
+  },
+  {
+    slug: 'generators',
+    name: '生成与转换',
+    tagline: '二维码、随机密码和 UUID、文件校验值、颜色换算、时间戳。',
+    category: '开发',
+    added: '2026.11',
+    keywords: ['qr', 'qrcode', 'wifi', 'barcode', 'password', 'uuid', 'nanoid', 'random', 'hash', 'md5', 'sha1', 'sha256', 'sha512', 'checksum', 'color', 'hex', 'rgb', 'hsl', 'cmyk', 'timestamp', 'unix', 'epoch', '二维码', '条形码', '扫码', '识别', '密码', '随机', '生成', '哈希', '校验', '颜色', '取色', '对比度', '时间戳', '时区', '日期', '开发'],
+  },
 ];
 
 export function getTool(slug: string) {

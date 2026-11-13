@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PiMinus, PiPlus } from 'react-icons/pi';
 import { Metronome, tapTempo, type MetronomeSettings } from './lib/metronome';
-import { useStored } from './lib/stored';
+import { useStored } from '@/lib/stored';
 
 const MIN = 30, MAX = 300;
 const clamp = (bpm: number) => Math.min(MAX, Math.max(MIN, Math.round(bpm)));

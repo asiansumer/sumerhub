@@ -16,5 +16,7 @@ export const loaders: Record<string, ComponentType> = {
   'image-compress': dynamic(() => import('./image-compress/tool'), { ssr: false, loading: ToolLoading }),
   'metronome-tuner': dynamic(() => import('./metronome-tuner/tool'), { ssr: false, loading: ToolLoading }),
   'vocal-split': dynamic(() => import('./vocal-split/tool'), { ssr: false, loading: ToolLoading }),
+  'code-tools': dynamic(() => import('./code-tools/tool'), { ssr: false, loading: ToolLoading }),
+  'generators': dynamic(() => import('./generators/tool'), { ssr: false, loading: ToolLoading }),
   'remove-bg': dynamic(() => import('./remove-bg/tool'), { ssr: false, loading: ToolLoading }),
 };

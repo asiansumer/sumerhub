@@ -52,3 +52,4 @@ pnpm-debug.log*
 /public/models/remove-bg-fine/
 /public/vendor/ort/
 /public/vendor/ort-web/
+/public/vendor/zxing/
