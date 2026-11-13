@@ -80,3 +80,10 @@ for (const name of ['ort-wasm-simd-threaded.asyncify.mjs', 'ort-wasm-simd-thread
 }
 console.log('已就位 public/vendor/ort');
 
+// 人声伴奏分离用的是顶层的 onnxruntime-web（WebGPU 版），它的 wasm 单独放一份，版本和 JS 一致。
+const ortWeb = path.join(root, 'public/vendor/ort-web');
+fs.mkdirSync(ortWeb, { recursive: true });
+for (const name of ['ort-wasm-simd-threaded.asyncify.mjs', 'ort-wasm-simd-threaded.asyncify.wasm']) {
+  fs.copyFileSync(path.join(root, 'node_modules/onnxruntime-web/dist', name), path.join(ortWeb, name));
+}
+console.log('已就位 public/vendor/ort-web');

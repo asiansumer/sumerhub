@@ -11,6 +11,7 @@ Sumer 的个人工具箱：常用的网页小工具放在一起，打开即用�
 | 抠图 | `/tools/remove-bg` | 去掉照片背景，导出透明 PNG 或换成纯色背景。模型是 [BiRefNet](https://github.com/ZhengPeng7/BiRefNet) 的轻量版，另有一个抠镂空细节的备用模型 |
 | 音频分析 | `/tools/audio-analyze` | BPM、调性、Camelot 编号、响度（LUFS）、波形和试听。灵感来自 [Tunebat](https://tunebat.com/Analyzer) |
 | 音频转换 | `/tools/audio-convert` | MP3、WAV、FLAC、M4A、OGG 互转，也能从 MP4、MOV 等视频里取出声音；已经是目标格式时原样取出不重新编码。核心来自 [Mediabunny](https://github.com/Vanilagy/mediabunny) |
+| 人声伴奏分离 | `/tools/vocal-split` | 把一首歌分成人声、伴奏、鼓、贝斯、其他乐器，导出 WAV。模型是 Demucs v4，浏览器版本来自 [timcsy/demucs-web](https://github.com/timcsy/demucs-web)；优先用 WebGPU，没有就用单线程 wasm（很慢） |
 | 节拍器和调音器 | `/tools/metronome-tuner` | 节拍器（调度移植自 [cwilso/metronome](https://github.com/cwilso/metronome)）和调音器（[pitchy](https://github.com/ianprime0509/pitchy)）放在一个工具里，用标签切换，`#tuner` 直接打开调音器 |
 | PDF 合并拆分 | `/tools/pdf-pages` | 合并多个 PDF 和图片，拖动排序、旋转、删除页面，导出成一个文件或每页一个文件。核心来自 [pdf-lib](https://github.com/Hopding/pdf-lib) |
 
@@ -62,6 +63,7 @@ src/
     remove-bg/             抠图（tool.tsx、remove.worker.ts、lib/engine.ts 调用 Transformers.js、lib/compose.ts 铺背景色）
     audio-analyze/         音频分析（tool.tsx、analyze.worker.ts、lib/ 里接入 BPM、调性、响度）
     audio-convert/         音频转换（tool.tsx、convert.worker.ts、lib/convert.ts 调用 Mediabunny）
+    vocal-split/           人声伴奏分离（tool.tsx、split.worker.ts 调用 demucs-web，lib/model.ts 下载并缓存模型，lib/wav.ts 写 WAV）
     metronome-tuner/       节拍器和调音器（tool.tsx 切换标签；metronome.tsx、tuner.tsx；lib/metronome.ts 是节拍调度）
     pdf-pages/             PDF 合并拆分（tool.tsx、pdf.worker.ts、lib/pdf.ts 调用 pdf-lib、lib/render.ts 调用 PDF.js）
 scripts/keynet/            生成调性模型文件的脚本
@@ -110,3 +112,5 @@ PDF 合并拆分使用 [`pdf-lib`](https://github.com/Hopding/pdf-lib)（MIT）�
 新工具沿用 `globals.css` 里的变量和 `.panel`、`.button`、`.link`，不要自带颜色。来自别的开源项目的工具，在 `registry.ts` 里填 `source`，工具页底部会标注出处。
 
 节拍器的调度方式移植自 [cwilso/metronome](https://github.com/cwilso/metronome)（MIT），调音器使用 [`pitchy`](https://github.com/ianprime0509/pitchy)（MIT）。
+
+人声伴奏分离使用 [`demucs-web`](https://github.com/timcsy/demucs-web)（MIT）：Meta 的 [Demucs v4](https://github.com/facebookresearch/demucs)（MIT）导出成 ONNX，STFT 和 iSTFT 在 JS 里做，用 ONNX Runtime Web 的 WebGPU 版运行。模型（180 MB）不在仓库和构建产物里，用的时候从 Hugging Face 的 `timcsy/demucs-web-onnx` 按固定版本下载，存进浏览器的 Cache Storage。在 MUSDB18 测试集的 50 段片段上，这个浏览器版本的中位数 SDR 是人声 8.7 dB、伴奏 13.6 dB，原版 Python Demucs 在同样的片段上是 8.9 和 13.4。

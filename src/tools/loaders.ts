@@ -15,5 +15,6 @@ export const loaders: Record<string, ComponentType> = {
   'pdf-pages': dynamic(() => import('./pdf-pages/tool'), { ssr: false, loading: ToolLoading }),
   'image-compress': dynamic(() => import('./image-compress/tool'), { ssr: false, loading: ToolLoading }),
   'metronome-tuner': dynamic(() => import('./metronome-tuner/tool'), { ssr: false, loading: ToolLoading }),
+  'vocal-split': dynamic(() => import('./vocal-split/tool'), { ssr: false, loading: ToolLoading }),
   'remove-bg': dynamic(() => import('./remove-bg/tool'), { ssr: false, loading: ToolLoading }),
 };

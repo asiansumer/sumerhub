@@ -24,6 +24,7 @@
     "@mediabunny/flac-encoder": "^1.65.2",
     "@mediabunny/mp3-encoder": "^1.65.2",
     "crypto-js": "^4.2.0",
+    "demucs-web": "^1.0.2",
     "ebur128-wasm": "^3.0.0",
     "heic2any": "^0.0.4",
     "jszip": "^3.10.1",
