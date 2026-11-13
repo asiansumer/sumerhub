@@ -71,6 +71,15 @@ export const tools: Tool[] = [
     keywords: ['audio', 'convert', 'mp3', 'wav', 'flac', 'm4a', 'aac', 'ogg', 'opus', 'mp4', 'video', 'extract', 'ffmpeg', '转换', '格式', '提取', '音频', '视频', '伴奏', '转码'],
   },
   {
+    slug: 'vocal-split',
+    name: '人声伴奏分离',
+    tagline: '把一首歌分成人声和伴奏，还能单独取出鼓、贝斯和其他乐器。',
+    category: '音频',
+    added: '2026.11',
+    source: { name: 'timcsy/demucs-web', url: 'https://github.com/timcsy/demucs-web' },
+    keywords: ['vocal', 'instrumental', 'stem', 'split', 'separate', 'demucs', 'karaoke', 'acapella', '人声', '伴奏', '分离', '消音', '去人声', '提取伴奏', '干声', '鼓', '贝斯', '分轨'],
+  },
+  {
     slug: 'pdf-pages',
     name: 'PDF 合并拆分',
     tagline: '合并、拆分 PDF，调整页面顺序，旋转或删掉某几页。',

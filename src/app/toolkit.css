@@ -4,7 +4,7 @@
 /* 拖放区 */
 .drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 320px; padding: 32px 20px; text-align: center; cursor: pointer;
   background-color: var(--sunken); background-image: radial-gradient(var(--dots) 1px, transparent 1px); background-size: 16px 16px; background-position: 8px 8px; transition: background-color .15s; }
-.drop .convert-preview, .drop .analyze-preview, .drop .pdf-preview { margin-bottom: 26px; }
+.drop .convert-preview, .drop .analyze-preview, .drop .pdf-preview, .drop .split-preview { margin-bottom: 26px; }
 .drop-title { font-family: var(--serif); font-size: 17px; font-weight: 500; }
 .drop-hint { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
 .drop.dragging { background-color: var(--raised); box-shadow: inset 0 0 0 1px var(--muted); }
@@ -174,6 +174,28 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
   .cutout-foot .row-text { flex: 1 1 100%; }
   .cutout-foot .icon { margin-left: auto; }
 }
+
+/* 人声伴奏分离 */
+.split-name { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row.split-minor { margin-top: 6px; position: relative; }
+.row.split-minor::before { content: ""; position: absolute; left: 12px; right: 12px; top: -3px; height: 1px; background: var(--line); }
+.split-preview { display: flex; align-items: center; gap: 10px; height: 78px; }
+.split-preview .lane { display: flex; align-items: center; gap: 3px; height: 34px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface); box-shadow: var(--highlight), 0 8px 20px -10px #000; transition: transform .35s cubic-bezier(.3, .7, .2, 1); }
+.split-preview .lane u { width: 2px; border-radius: 2px; background: var(--faint); text-decoration: none; height: 40%; }
+.split-preview .lane u:nth-child(3n) { height: 75%; }
+.split-preview .lane u:nth-child(4n+1) { height: 55%; }
+.split-preview .lane u:nth-child(5n+2) { height: 30%; }
+.split-preview .mix { height: 46px; }
+.split-preview .lanes { display: flex; flex-direction: column; gap: 8px; }
+.split-preview .lane b { margin-right: 5px; font: 500 10px var(--sans); color: var(--faint); }
+.split-preview .voice { background: var(--raised); border-color: var(--muted); }
+.split-preview .voice u { background: var(--fg); }
+.split-preview .voice b { color: var(--fg); }
+.split-preview .fork { display: flex; flex-direction: column; gap: 22px; }
+.split-preview .fork i { width: 10px; height: 1px; background: var(--line-strong); transform: rotate(-24deg); }
+.split-preview .fork i + i { transform: rotate(24deg); }
+.card.active .split-preview .voice, .drop:hover .split-preview .voice { transform: translateY(-2px); }
+.card.active .split-preview .band, .drop:hover .split-preview .band { transform: translateY(2px); }
 
 /* 节拍器和调音器 */
 .pocket-tabs { display: flex; gap: 4px; padding: 10px 12px 0; border-bottom: 1px solid var(--line); }
