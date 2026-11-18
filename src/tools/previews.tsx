@@ -6,6 +6,7 @@ import NcmPreview from './ncm-to-mp3/preview';
 import MetronomeTunerPreview from './metronome-tuner/preview';
 import PdfPagesPreview from './pdf-pages/preview';
 import VocalSplitPreview from './vocal-split/preview';
+import SingAlongPreview from './sing-along/preview';
 import CodeToolsPreview from './code-tools/preview';
 import GeneratorsPreview from './generators/preview';
 import RemoveBgPreview from './remove-bg/preview';
@@ -17,6 +18,7 @@ export const previews: Record<string, ComponentType> = {
   'remove-bg': RemoveBgPreview,
   'audio-analyze': AudioAnalyzePreview,
   'audio-convert': AudioConvertPreview,
+  'sing-along': SingAlongPreview,
   'vocal-split': VocalSplitPreview,
   'pdf-pages': PdfPagesPreview,
   'code-tools': CodeToolsPreview,

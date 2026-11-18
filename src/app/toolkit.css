@@ -466,3 +466,73 @@ p.row-error { margin: 0; }
   .time-pick { flex-direction: column; }
   .time-now .link { margin-left: 0; }
 }
+
+/* 跟唱录音 */
+.sing-find { display: flex; gap: 10px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.sing-find .input { flex: 1; min-width: 0; }
+.sing-find .button { height: 38px; }
+.sing-results .row > button { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; }
+.sing-results .row:hover { background: var(--raised); }
+.sing-song { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); }
+.sing-song img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: var(--sunken); flex: none; }
+.sing-song .row-text { flex: 1; min-width: 0; }
+.sing-plain { padding: 12px 20px; border-bottom: 1px solid var(--line); width: 100%; }
+.sing-reset { margin: 0; padding: 12px 20px; text-align: right; }
+.drop .sing-preview { margin-bottom: 26px; }
+
+.sing-preview { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 150px; height: 78px; justify-content: center; }
+.sing-preview .words { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+.sing-preview .words i { width: 52%; height: 5px; border-radius: 3px; background: var(--line-strong); }
+.sing-preview .words i:last-child { width: 64%; }
+.sing-preview .words .now { position: relative; width: 86%; height: 8px; border-radius: 4px; background: var(--faint); overflow: hidden; }
+.sing-preview .words .now b { position: absolute; inset: 0 45% 0 0; background: var(--fg); border-radius: 4px; transition: inset .5s cubic-bezier(.3, .7, .2, 1); }
+.card.active .sing-preview .now b, .drop:hover .sing-preview .now b { inset: 0 12% 0 0; }
+.sing-preview .take { display: flex; align-items: center; gap: 3px; height: 22px; padding: 0 9px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); box-shadow: var(--highlight); }
+.sing-preview .take em { width: 6px; height: 6px; margin-right: 4px; border-radius: 50%; background: var(--danger); }
+.sing-preview .take u { width: 2px; height: 40%; border-radius: 2px; background: var(--faint); text-decoration: none; }
+.sing-preview .take u:nth-child(3n) { height: 80%; }
+.sing-preview .take u:nth-child(4n+1) { height: 58%; }
+.sing-preview .take u:nth-child(5n+2) { height: 28%; }
+
+.sing-studio { border-top: 1px solid var(--line); }
+.sing-lyrics { position: relative; height: 320px; border-bottom: 1px solid var(--line); background: var(--sunken); overflow: hidden; }
+.sing-lyric-player { width: 100%; height: 100%; font-family: var(--serif); font-weight: 500; --amll-lp-color: var(--fg); --amll-lp-font-size: 26px; --amll-lyric-player-font-size: 26px; }
+.sing-lyrics-options { position: absolute; right: 14px; bottom: 10px; display: flex; gap: 14px; padding: 4px 10px; border-radius: 8px; background: #121214cc; }
+.sing-nolyrics { margin: 0; padding: 22px 20px; font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--line); background: var(--sunken); }
+
+.sing-transport { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-bottom: 1px solid var(--line); }
+.sing-record { display: inline-flex; align-items: center; gap: 8px; height: 34px; min-width: 92px; padding: 0 14px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--raised); font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; transition: border-color .15s, background .15s; }
+.sing-record i { width: 9px; height: 9px; border-radius: 50%; background: var(--danger); }
+.sing-record:hover { border-color: var(--faint); }
+.sing-record.on { border-color: var(--danger); color: var(--danger); background: #f0806e14; }
+.sing-time { margin-left: 8px; font: 13px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.sing-time span { color: var(--fg); }
+.sing-zoom { margin-left: auto; display: flex; gap: 14px; }
+
+.sing-tracks { border-bottom: 1px solid var(--line); background: var(--sunken); overflow: hidden; }
+.sing-track { display: flex; flex-direction: column; justify-content: center; gap: 2px; height: 100%; padding: 0 10px 0 14px; border-right: 1px solid var(--line); background: var(--surface); font-size: 12px; color: var(--muted); }
+.sing-track > span { color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sing-track > div { display: flex; align-items: center; gap: 4px; margin-left: -6px; }
+.sing-track .icon { width: 24px; height: 24px; }
+.sing-track .icon[aria-pressed="true"] { color: var(--faint); }
+.sing-track input[type="range"] { flex: 1; min-width: 0; height: 14px; accent-color: var(--fg); }
+
+.sing-mic, .sing-export { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 18px; padding: 12px 20px; border-bottom: 1px solid var(--line); }
+.sing-mic .field, .sing-export .field { gap: 8px; }
+.sing-mic .field > span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.sing-mic .select { max-width: 220px; }
+.sing-level { position: relative; flex: 1; min-width: 120px; height: 6px; border-radius: 3px; background: var(--raised); overflow: hidden; }
+.sing-level span { position: absolute; inset: 0 auto 0 0; background: var(--ok); border-radius: 3px; }
+.sing-level span.hot { background: var(--danger); }
+.sing-level i { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -2px; background: var(--fg); }
+.sing-latency { margin-left: auto; }
+.sing-latency .input { width: 76px; height: 32px; font-size: 13px; }
+.sing-export-note { margin-right: auto; font-size: 12px; color: var(--faint); }
+.sing-export { border-bottom: 0; }
+@media (max-width: 640px) {
+  .sing-find { flex-direction: column; }
+  .sing-find .input { flex: none; }
+  .sing-lyrics { height: 280px; }
+  .sing-latency { margin-left: 0; }
+  .sing-zoom { display: none; }
+}

@@ -3,9 +3,16 @@ import { restoreMetadata } from '../lib/ncm/metadata';
 import { encodeMp3 } from '../lib/ncm/encode';
 import { fetchArtwork } from '../lib/ncm/artwork';
 
-type Request = { kind: 'decode'; buffer: ArrayBuffer; fallbackTitle: string } | { kind: 'encode'; channels: Int16Array[]; sampleRate: number; metadata: AudioMetadata };
+type Request = { kind: 'decode'; buffer: ArrayBuffer; fallbackTitle: string } | { kind: 'unlock'; buffer: ArrayBuffer } | { kind: 'encode'; channels: Int16Array[]; sampleRate: number; metadata: AudioMetadata };
 self.onmessage = async ({ data }: MessageEvent<Request>) => {
   try {
+    // 只解出音频和文件里自带的信息，不补标签也不联网（跟唱录音用）。
+    if (data.kind === 'unlock') {
+      const { data: audio, format, metadata } = decodeNcm(data.buffer);
+      const result = { data: audio, format, title: metadata.title, artist: metadata.artist, musicId: metadata.musicId };
+      self.postMessage({ kind: 'done', result }, { transfer: [audio] });
+      return;
+    }
     if (data.kind === 'decode') {
       const result = await restoreMetadata(decodeNcm(data.buffer), data.fallbackTitle, fetchArtwork);
       self.postMessage({ kind: 'done', result }, { transfer: [result.data] });

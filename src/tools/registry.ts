@@ -71,6 +71,15 @@ export const tools: Tool[] = [
     keywords: ['audio', 'convert', 'mp3', 'wav', 'flac', 'm4a', 'aac', 'ogg', 'opus', 'mp4', 'video', 'extract', 'ffmpeg', '转换', '格式', '提取', '音频', '视频', '伴奏', '转码'],
   },
   {
+    slug: 'sing-along',
+    name: '跟唱录音',
+    tagline: '贴上网易云的链接，对着滚动歌词和伴奏唱，录下来导出干声。',
+    category: '音频',
+    added: '2026.11',
+    source: { name: 'naomiaro/waveform-playlist', url: 'https://github.com/naomiaro/waveform-playlist' },
+    keywords: ['karaoke', 'sing', 'record', 'lyrics', 'lrc', 'netease', 'vocal', 'daw', 'k歌', '卡拉ok', '唱歌', '跟唱', '录音', '歌词', '滚动歌词', '伴奏', '干声', '网易云', '翻唱'],
+  },
+  {
     slug: 'vocal-split',
     name: '人声伴奏分离',
     tagline: '把一首歌分成人声和伴奏，还能单独取出鼓、贝斯和其他乐器。',

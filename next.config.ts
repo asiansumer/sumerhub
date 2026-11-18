@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
     // ebur128-wasm（音频分析的响度测量）是以 ES 模块形式引入的 .wasm。
     config.experiments = { ...config.experiments, asyncWebAssembly: true };
     config.output.environment = { ...config.output.environment, asyncFunction: true };
+    // waveform-playlist 里两个可选的扩展（WAM 插件、媒体元素播放）这里用不到，也没有安装。
+    config.resolve.alias['@dawcore/wam$'] = false;
+    config.resolve.alias['@waveform-playlist/media-element-playout$'] = false;
+    // waveform-playlist（跟唱录音）的录音和电平处理器要作为单独的文件提供给 AudioWorklet。
+    config.module.rules.push({ test: /@waveform-playlist[\\/]worklets[\\/].*\.worklet\.(js|mjs)$/, type: 'asset/resource', generator: { filename: 'static/worklets/[name][ext]' } });
     return config;
   },
 };

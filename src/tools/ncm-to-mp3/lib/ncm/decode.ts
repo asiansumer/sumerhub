@@ -10,6 +10,8 @@ export type AudioMetadata = {
   lyrics?: { text: string; description?: string; language?: string }[];
   artworkUrl?: string;
   artworkUnavailable?: boolean;
+  /** 网易云的歌曲 id（NCM 文件里自带），跟唱录音用它直接找歌词。 */
+  musicId?: string;
 };
 export type DecodedNcm = { data: ArrayBuffer; format: 'mp3' | 'flac'; metadata: AudioMetadata };
 
@@ -70,6 +72,7 @@ export function decodeNcm(buffer: ArrayBuffer): DecodedNcm {
       metadata = {
         title: properties.title?.[0], album: properties.album?.[0], artist: properties.artist?.join(', '), properties,
         artworkUrl: artworkUrl(info.albumPic ?? info.albumPicUrl ?? parsed.albumPic),
+        musicId: /^\d{1,12}$/.test(String(info.musicId ?? '')) ? String(info.musicId) : undefined,
       };
     } catch { /* Optional tags must not prevent audio recovery. */ }
   }
