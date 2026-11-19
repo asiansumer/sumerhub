@@ -61,6 +61,7 @@ src/
     tools/[slug]/page.tsx  所有工具共用的页面外框
     globals.css            设计变量、首页和页面外框的样式
     toolkit.css            工具页通用的样式
+  app/api/netease/         跟唱录音的歌词接口（向网易云代取歌名和歌词）
   components/              页头、首页列表、拖放区等
   lib/                     各工具共用的小函数
   tools/
@@ -72,6 +73,7 @@ src/
     remove-bg/             抠图（tool.tsx、remove.worker.ts、lib/engine.ts 调用 Transformers.js、lib/compose.ts 铺背景色）
     audio-analyze/         音频分析（tool.tsx、analyze.worker.ts、lib/ 里接入 BPM、调性、响度）
     audio-convert/         音频转换（tool.tsx、convert.worker.ts、lib/convert.ts 调用 Mediabunny）
+    sing-along/            跟唱录音（tool.tsx 管链接、文件和分离；studio.tsx 是录音台，用 AMLL 和 waveform-playlist；lib/ 里是链接识别、歌词整理、读文件、伴奏缓存）
     vocal-split/           人声伴奏分离（tool.tsx、split.worker.ts 调用 demucs-web，lib/model.ts 下载并缓存模型，lib/wav.ts 写 WAV）
     metronome-tuner/       节拍器和调音器（tool.tsx 切换标签；metronome.tsx、tuner.tsx；lib/metronome.ts 是节拍调度）
     code-tools/            代码小工具（tool.tsx 列出标签；json.tsx、format.tsx、regex.tsx、markdown.tsx、jwt.tsx；highlight.tsx 给代码上色）
@@ -125,6 +127,10 @@ PDF 合并拆分使用 [`pdf-lib`](https://github.com/Hopding/pdf-lib)（MIT）�
 节拍器的调度方式移植自 [cwilso/metronome](https://github.com/cwilso/metronome)（MIT），调音器使用 [`pitchy`](https://github.com/ianprime0509/pitchy)（MIT）。
 
 人声伴奏分离使用 [`demucs-web`](https://github.com/timcsy/demucs-web)（MIT）：Meta 的 [Demucs v4](https://github.com/facebookresearch/demucs)（MIT）导出成 ONNX，STFT 和 iSTFT 在 JS 里做，用 ONNX Runtime Web 的 WebGPU 版运行。模型（180 MB）不在仓库和构建产物里，用的时候从 Hugging Face 的 `timcsy/demucs-web-onnx` 按固定版本下载，存进浏览器的 Cache Storage。在 MUSDB18 测试集的 50 段片段上，这个浏览器版本的中位数 SDR 是人声 8.7 dB、伴奏 13.6 dB，原版 Python Demucs 在同样的片段上是 8.9 和 13.4。
+
+跟唱录音：滚动歌词使用 [AMLL](https://github.com/amll-dev/applemusic-like-lyrics)（`@applemusic-like-lyrics/core`、`react`、`lyric`，**AGPL-3.0-only**）显示和解析歌词，歌词后面按封面颜色流动的背景也是它的（`BackgroundRender`），它依赖 [PixiJS](https://github.com/pixijs/pixijs)（MIT）。录音、多轨波形、电平表、延迟补偿和导出 WAV 使用 [waveform-playlist](https://github.com/naomiaro/waveform-playlist)（MIT），它底下是 [Tone.js](https://github.com/Tonejs/Tone.js)（MIT）、[styled-components](https://github.com/styled-components/styled-components)（MIT）和 `@dnd-kit`（MIT）；录音流程照它的录音示例写。伴奏分离和「人声伴奏分离」是同一套（demucs-web），分离结果用 [`idb-keyval`](https://github.com/jakearchibald/idb-keyval)（Apache-2.0）存在浏览器里。歌名、歌词和封面由 `src/app/api/netease/route.ts` 向网易云音乐的公开接口代取（浏览器不能直接跨域请求），不取音频，不带账号信息。
+
+因为用了 AGPL-3.0 的 AMLL，整个站点的源代码要向使用者公开：仓库需要是公开的，本项目自己的代码也按 AGPL-3.0 发布（见根目录的 `LICENSE`）。不想公开的话，把 `src/tools/sing-along/studio.tsx` 里的歌词组件换成 MIT 的 [`react-lrc`](https://github.com/mebtte/react-lrc)（只有逐行高亮，没有逐字）。
 
 代码小工具使用 [`jsonrepair`](https://github.com/josdejong/jsonrepair)（ISC）、[`js-beautify`](https://github.com/beautifier/js-beautify)（MIT）、[`sql-formatter`](https://github.com/sql-formatter-org/sql-formatter)（MIT）、[`marked`](https://github.com/markedjs/marked)（MIT）、[`DOMPurify`](https://github.com/cure53/DOMPurify)（Apache-2.0 或 MPL-2.0）、[`jwt-decode`](https://github.com/auth0/jwt-decode)（MIT）和 [`highlight.js`](https://github.com/highlightjs/highlight.js)（BSD-3-Clause）。
 
