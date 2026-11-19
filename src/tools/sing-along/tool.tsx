@@ -150,6 +150,8 @@ export default function SingAlong() {
 
   // 分离时每秒刷新一次「还要多久」。
   const working = splitting?.phase === 'working';
+  // 封面由本站代取：歌词背景要读它的颜色，直接用网易云的地址读不了。
+  const cover = song?.cover ? '/api/netease?cover=' + encodeURIComponent(song.cover) : null;
   useEffect(() => {
     if (!working) return;
     const timer = setInterval(() => tick(n => n + 1), 1000);
@@ -193,7 +195,7 @@ export default function SingAlong() {
           <div className="sing-song">
             {/* 封面直接来自网易云的图片服务器。 */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {song.cover && <img src={song.cover + '?param=96y96'} alt="" width={44} height={44} referrerPolicy="no-referrer" />}
+            {cover && <img src={cover} alt="" width={44} height={44} />}
             <div className="row-text">
               <strong>{song.title}</strong>
               <span>{[song.artists.join('、'), lyrics?.lines.length ? `歌词 ${lyrics.lines.length} 行${lyrics.wordLevel ? '，逐字' : ''}` : '没有歌词'].filter(Boolean).join(' · ')}</span>
@@ -233,15 +235,16 @@ export default function SingAlong() {
           </p>
         )}
 
-        {audio && <Studio key={audio.key + (audio.plain ? ':plain' : '')} name={name} lyrics={lyrics} original={audio.buffer} stems={stems} plain={audio.plain} instrumental={instrumental} />}
+        {audio && <Studio key={audio.key + (audio.plain ? ':plain' : '')} name={name} lyrics={lyrics} original={audio.buffer} stems={stems} plain={audio.plain} instrumental={instrumental}
+          cover={cover} />}
         {audio && <p className="sing-reset"><button className="link" onClick={reset}>清空，换一首歌</button></p>}
       </div>
 
       <dl className="notes">
         <div><dt>怎么用</dt><dd>在网易云里点「分享」→「复制链接」贴到上面，歌词就对上了。音频要用你自己下载好的文件：把 .ncm 直接拖进来就行，里面带着歌曲信息，连链接都不用贴。</dd></div>
-        <div><dt>录音</dt><dd>请戴耳机，不然伴奏会被麦克风录进去。有线耳机最准；用蓝牙耳机时，麦克风选电脑自带的，录出来和伴奏对不齐就在「延迟补偿」里填毫秒数。把播放头放到想开始的地方，点「录音」（或按 R），伴奏和歌词会一起走；重录某一句，就把播放头放回那一句再录，新的会盖掉旧的。空格是播放和暂停。</dd></div>
+        <div><dt>录音</dt><dd>请戴耳机，不然伴奏会被麦克风录进去。有线耳机最准；用蓝牙耳机时，麦克风选电脑自带的，录出来和伴奏对不齐就在「延迟补偿」里填毫秒数。把播放头放到想开始的地方，点红色的录音键（或按 R），伴奏和歌词会一起走；重录某一句，就把播放头放回那一句再录，新的会盖掉旧的。空格是播放和暂停。</dd></div>
         <div><dt>导出</dt><dd>「干声」只有你的声音，没有任何处理，从歌曲开头算起，放进宿主软件能和伴奏直接对齐，方便修音。「混音」是伴奏加你的声音。分离出来的「伴奏」也可以单独下载。</dd></div>
-        <div><dt>隐私</dt><dd>歌和录音都只在浏览器里处理，不会上传。只有找歌词时，会把链接或歌名发给本站，再由本站去问网易云。分离好的伴奏会存在浏览器里（最近 5 首），同一首歌下次打开不用再等。</dd></div>
+        <div><dt>隐私</dt><dd>歌和录音都只在浏览器里处理，不会上传。只有找歌词和封面时，会把链接或歌名发给本站，再由本站去问网易云。分离好的伴奏会存在浏览器里（最近 5 首），同一首歌下次打开不用再等。</dd></div>
       </dl>
       <p className="fine">
         滚动歌词用的是 <a href="https://github.com/amll-dev/applemusic-like-lyrics" target="_blank" rel="noopener noreferrer">AMLL</a>（AGPL-3.0），

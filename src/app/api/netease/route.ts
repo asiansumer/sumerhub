@@ -3,7 +3,7 @@ import { parseSongLink } from '@/tools/sing-along/lib/link';
 
 /**
  * 跟唱录音用的歌词接口：浏览器不能直接跨域请求网易云，由这里代取。
- * 只做三件固定的事：按歌曲 id 取歌名和歌词、把分享短链接换成 id、按歌名搜索。
+ * 只做四件固定的事：按歌曲 id 取歌名和歌词、把分享短链接换成 id、按歌名搜索、取专辑封面（歌词背景要读它的颜色，跨域的图读不了）。
  * 不取音频，也不带任何账号信息。
  */
 export const runtime = 'nodejs';
@@ -54,6 +54,17 @@ const fail = (status: number, error: string) => NextResponse.json({ error }, { s
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
   try {
+    const cover = params.get('cover');
+    if (cover) {
+      // 只认网易云自己的图片域名，别的地址一律不代取。
+      const url = URL.canParse(cover) ? new URL(cover) : null;
+      if (!url || url.protocol !== 'https:' || !/^p\d+\.music\.126\.net$/.test(url.hostname)) return fail(400, '不是网易云的封面地址。');
+      const image = await get(`${url.origin}${url.pathname}?param=300y300`);
+      const type = image.headers.get('content-type') ?? '';
+      if (!image.ok || !type.startsWith('image/')) return fail(502, '封面取不到。');
+      return new NextResponse(await image.arrayBuffer(), { headers: { 'Content-Type': type, 'Cache-Control': 'public, max-age=86400, s-maxage=2592000, immutable' } });
+    }
+
     const query = params.get('q')?.trim().slice(0, 80);
     if (query) {
       const response = await get(`https://music.163.com/api/cloudsearch/pc?type=1&limit=8&offset=0&s=${encodeURIComponent(query)}`);
