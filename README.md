@@ -2,6 +2,8 @@
 
 Sumer 的个人工具箱：常用的网页小工具放在一起，打开即用，文件都在浏览器本地处理。
 
+线上地址：<https://www.ncmswift.xyz>。合并到 `main` 后由 Vercel 自动部署。
+
 ## 现有工具
 
 | 工具 | 路径 | 说明 |
@@ -18,6 +20,8 @@ Sumer 的个人工具箱：常用的网页小工具放在一起，打开即用�
 | PDF 合并拆分 | `/tools/pdf-pages` | 合并多个 PDF 和图片，拖动排序、旋转、删除页面，导出成一个文件或每页一个文件。核心来自 [pdf-lib](https://github.com/Hopding/pdf-lib) |
 
 ## 开发
+
+需要 Node 22。
 
 ```sh
 npm ci
