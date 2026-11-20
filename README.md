@@ -61,7 +61,7 @@ src/
     tools/[slug]/page.tsx  所有工具共用的页面外框
     globals.css            设计变量、首页和页面外框的样式
     toolkit.css            工具页通用的样式
-  app/api/netease/         跟唱录音的歌词接口（向网易云代取歌名和歌词）
+  app/api/netease/         跟唱录音的歌词接口（向网易云代取歌名、歌词、封面，列出歌单和专辑里的歌；不取音频）
   components/              页头、首页列表、拖放区等
   lib/                     各工具共用的小函数
   tools/
@@ -73,7 +73,7 @@ src/
     remove-bg/             抠图（tool.tsx、remove.worker.ts、lib/engine.ts 调用 Transformers.js、lib/compose.ts 铺背景色）
     audio-analyze/         音频分析（tool.tsx、analyze.worker.ts、lib/ 里接入 BPM、调性、响度）
     audio-convert/         音频转换（tool.tsx、convert.worker.ts、lib/convert.ts 调用 Mediabunny）
-    sing-along/            跟唱录音（tool.tsx 管链接、文件和分离；studio.tsx 是录音台，用 AMLL 和 waveform-playlist；lib/ 里是链接识别、歌词整理、读文件、伴奏缓存）
+    sing-along/            跟唱录音（tool.tsx 管链接、「我的下载」文件夹、文件和分离；studio.tsx 是整屏的录音台，lyrics-stage.tsx 是歌词舞台，用 AMLL 和 waveform-playlist；lib/ 里是链接识别、歌词整理、读文件和文件里的网易云歌曲 id、在下载文件夹里找歌、伴奏缓存）
     vocal-split/           人声伴奏分离（tool.tsx、split.worker.ts 调用 demucs-web，lib/model.ts 下载并缓存模型，lib/wav.ts 写 WAV）
     metronome-tuner/       节拍器和调音器（tool.tsx 切换标签；metronome.tsx、tuner.tsx；lib/metronome.ts 是节拍调度）
     code-tools/            代码小工具（tool.tsx 列出标签；json.tsx、format.tsx、regex.tsx、markdown.tsx、jwt.tsx；highlight.tsx 给代码上色）
