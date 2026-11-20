@@ -1,3 +1,5 @@
+import { readTag } from './tag';
+
 /** 打开用户放进来的歌：普通音频直接用，.ncm 先解开（和「NCM 转 MP3」是同一段解码）。 */
 export type Source = {
   /** 可以直接解码播放的音频。 */
@@ -5,7 +7,7 @@ export type Source = {
   fileName: string;
   title: string;
   artist?: string;
-  /** .ncm 文件里自带的网易云歌曲 id，有它就不用再贴链接。 */
+  /** 网易云下载的文件里自带的歌曲 id，有它就不用再贴链接。 */
   musicId?: string;
 };
 
@@ -26,7 +28,11 @@ function unlockNcm(buffer: ArrayBuffer): Promise<Unlocked> {
 
 export async function openSource(file: File): Promise<Source> {
   const stem = file.name.replace(/\.[^.]+$/, '');
-  if (!/\.ncm$/i.test(file.name)) return { blob: file, fileName: file.name, title: stem };
+  if (!/\.ncm$/i.test(file.name)) {
+    // 网易云下载的 MP3、FLAC 也带着歌曲 id，在备注标签里。
+    const tag = await readTag(file);
+    return { blob: file, fileName: file.name, title: tag?.title || stem, artist: tag?.artist, musicId: tag?.musicId };
+  }
   const unlocked = await unlockNcm(await file.arrayBuffer());
   return {
     blob: new Blob([unlocked.data], { type: unlocked.format === 'mp3' ? 'audio/mpeg' : 'audio/flac' }),

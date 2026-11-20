@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { parseSongLink } from '@/tools/sing-along/lib/link';
+import { parseLink, type AnyLink } from '@/tools/sing-along/lib/link';
 
 /**
  * 跟唱录音用的歌词接口：浏览器不能直接跨域请求网易云，由这里代取。
- * 只做四件固定的事：按歌曲 id 取歌名和歌词、把分享短链接换成 id、按歌名搜索、取专辑封面（歌词背景要读它的颜色，跨域的图读不了）。
+ * 只做几件固定的事：按歌曲 id 取歌名和歌词、把分享短链接换成 id、列出歌单或专辑里的歌名、按歌名搜索、取专辑封面（歌词背景要读它的颜色，跨域的图读不了）。
  * 不取音频，也不带任何账号信息。
  */
 export const runtime = 'nodejs';
@@ -35,16 +35,18 @@ const brief = (song: RawSong) => ({
   duration: song.duration ?? song.dt ?? 0,
 });
 
-async function resolveShort(short: string): Promise<string | null> {
+/** 短链接跳到哪里就是哪里：一首歌、一个歌单或者一张专辑。中间可能再跳几次。 */
+async function resolveShort(short: string): Promise<Exclude<AnyLink, { short: string }>> {
   let url = short;
-  for (let hop = 0; hop < 3; hop++) {
+  for (let hop = 0; hop < 5; hop++) {
     const response = await get(url, 'manual');
     const location = response.headers.get('location');
     if (!location) return null;
-    const next = parseSongLink(new URL(location, url).toString());
-    if (!next) return null;
-    if ('id' in next) return next.id;
-    url = next.short;
+    url = new URL(location, url).toString();
+    const next = parseLink(url);
+    if (next && !('short' in next)) return next;
+    if (next) url = next.short;
+    else if (!/^https:\/\/([\w-]+\.)*(163\.com|163cn\.tv|163cn\.link)\//.test(url)) return null;
   }
   return null;
 }
@@ -72,10 +74,23 @@ export async function GET(request: Request) {
       return NextResponse.json({ songs: (data.result?.songs ?? []).map(brief) });
     }
 
-    const link = parseSongLink(params.get('link') ?? '');
-    if (!link) return fail(400, '认不出这个链接。请粘贴网易云里一首歌的分享链接。');
-    const id = 'id' in link ? link.id : await resolveShort(link.short);
-    if (!id) return fail(404, '这个短链接打不开，或者不是一首歌。');
+    const pasted = parseLink(params.get('link') ?? '');
+    if (!pasted) return fail(400, '认不出这个链接。请粘贴网易云里一首歌（或歌单、专辑）的分享链接。');
+    const link = 'short' in pasted ? await resolveShort(pasted.short) : pasted;
+    if (!link) return fail(404, '这个短链接打不开，或者不是歌曲。可以在网易云里重新复制链接，或者直接输入歌名搜。');
+
+    // 歌单、专辑：只列出里面的歌，给用户挑。
+    if ('playlist' in link) {
+      const data = await get(`https://music.163.com/api/v6/playlist/detail?id=${link.playlist}&n=100`).then(r => r.json()) as { playlist?: { name?: string; tracks?: RawSong[] } };
+      if (!data.playlist) return fail(404, '这个歌单打不开，可能不公开。');
+      return NextResponse.json({ list: `歌单：${data.playlist.name ?? ''}`, songs: (data.playlist.tracks ?? []).slice(0, 100).map(brief) });
+    }
+    if ('album' in link) {
+      const data = await get(`https://music.163.com/api/v1/album/${link.album}`).then(r => r.json()) as { album?: { name?: string }; songs?: RawSong[] };
+      if (!data.album) return fail(404, '这张专辑打不开。');
+      return NextResponse.json({ list: `专辑：${data.album.name ?? ''}`, songs: (data.songs ?? []).slice(0, 100).map(brief) });
+    }
+    const id = link.id;
 
     const [detail, lyric] = await Promise.all([
       get(`https://music.163.com/api/song/detail/?id=${id}&ids=%5B${id}%5D`).then(r => r.json()) as Promise<{ songs?: RawSong[] }>,
